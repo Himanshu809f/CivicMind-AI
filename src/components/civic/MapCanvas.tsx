@@ -55,7 +55,7 @@ export default function MapCanvas({
   markers?: MapMarker[];
   center?: [number, number];
   zoom?: number;
-  onPick?: (lat: number, lng: number) => void;
+  onPick?: ((lat: number, lng: number) => void) | undefined;
 }) {
   const key = useMemo(() => `${center[0]}-${center[1]}`, [center]);
   return (
