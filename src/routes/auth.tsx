@@ -46,14 +46,14 @@ function AuthPage() {
     setBusy(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Welcome back to CivicMind AI");
     navigate({ to: "/dashboard" });
   }
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
-    if (password.length < 8) return toast.error("Use at least 8 characters for your password.");
+    if (password.length < 8) { toast.error("Use at least 8 characters for your password."); return; }
     setBusy(true);
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -64,7 +64,7 @@ function AuthPage() {
       },
     });
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     if (!data.session) {
       setSentTo(email);
       return;
@@ -80,7 +80,7 @@ function AuthPage() {
       redirectTo: `${window.location.origin}/reset-password`,
     });
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Password reset link sent. Check your inbox.");
     setMode("login");
   }
@@ -89,7 +89,7 @@ function AuthPage() {
     const result = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin,
     });
-    if (result.error) return toast.error("Google sign-in failed. Please try again.");
+    if (result.error) { toast.error("Google sign-in failed. Please try again."); return; }
     if (result.redirected) return;
     navigate({ to: "/dashboard" });
   }
