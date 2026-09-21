@@ -1,0 +1,12 @@
+{
+  "name": "CivicMind AI — Public Issue Intelligence",
+  "short_name": "CivicMind",
+  "description": "Report civic issues, track resolution and see AI-assisted routing in real time.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f8fc",
+  "theme_color": "#2f5bd7",
+  "icons": [
+    { "src": "/favicon.ico", "sizes": "48x48", "type": "image/x-icon" }
+  ]
+}
