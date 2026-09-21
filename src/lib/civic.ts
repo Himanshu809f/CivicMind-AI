@@ -74,8 +74,16 @@ export const CATEGORIES: {
   },
 ];
 
+const FALLBACK_CATEGORY = {
+  value: "OTHER",
+  label: "Other civic issue",
+  department: "Municipal Administration",
+  slaHours: 72,
+  subcategories: ["General"],
+};
+
 export function categoryMeta(value: string | null | undefined) {
-  return CATEGORIES.find((c) => c.value === value) ?? CATEGORIES[CATEGORIES.length - 1];
+  return CATEGORIES.find((c) => c.value === value) ?? FALLBACK_CATEGORY;
 }
 
 export const STATUS_META: Record<ComplaintStatus, { label: string; tone: string; step: number }> = {

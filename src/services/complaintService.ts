@@ -106,6 +106,7 @@ export async function createComplaint(input: NewComplaintInput) {
   const { data: complaint, error } = await supabase
     .from("complaints")
     .insert({
+      complaint_number: "",
       citizen_id: userId,
       title: input.title,
       description: input.description,
