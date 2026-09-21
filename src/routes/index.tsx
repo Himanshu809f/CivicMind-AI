@@ -98,7 +98,7 @@ function Landing() {
               <Link to={home}>{t("nav.login")}</Link>
             </Button>
             <Button asChild size="sm">
-              <Link to="/auth" search={{ mode: "register" }}>{t("nav.register")}</Link>
+              <Link to="/auth">{t("nav.register")}</Link>
             </Button>
             <button className="lg:hidden" onClick={() => setMenu(!menu)} aria-label="Menu">
               <ArrowRight className="size-5" />
@@ -259,7 +259,7 @@ function Landing() {
               <Link to={session ? "/complaints/new" : "/auth"}>Report an issue</Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="bg-card/10 text-primary-foreground">
-              <Link to="/auth" search={{ mode: "register" }}>Create an account</Link>
+              <Link to="/auth">Create an account</Link>
             </Button>
           </div>
         </div>
