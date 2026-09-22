@@ -67,7 +67,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: AdminConsole;
+  component: AdminConsole,
 });
 
 const PIE_COLORS = ["#2f5bd7", "#22b8cf", "#7c5cf0", "#d98a1a", "#d14033", "#1f9d6b"];
