@@ -38,9 +38,9 @@ export const Route = createFileRoute("/_authenticated/map")({
   component: MapPage,
 });
 
-const PRIORITY_TONE: Record<string, string> = {
-  LOW: "muted",
-  MEDIUM: "signal",
+const PRIORITY_TONE: Record<string, MapMarker["tone"]> = {
+  LOW: "primary",
+  MEDIUM: "primary",
   HIGH: "warning",
   CRITICAL: "critical",
 };

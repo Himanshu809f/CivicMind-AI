@@ -184,7 +184,6 @@ function ComplaintDetail() {
       citizen_id: user.id,
       rating,
       comment: comment || null,
-      resolved_satisfactorily: rating >= 3,
     });
     setBusy(false);
     if (error) {

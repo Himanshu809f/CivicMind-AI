@@ -55,8 +55,8 @@ function ProfilePage() {
     setBusy(true);
     const { error } = await supabase
       .from("profiles")
-      .update({ full_name: fullName, phone, ward, city, preferred_language: lang })
-      .eq("id", user.id);
+      .update({ full_name: fullName, phone, ward, city, language: lang })
+      .eq("user_id", user.id);
     setBusy(false);
     if (error) {
       toast.error("Could not save your profile.");
