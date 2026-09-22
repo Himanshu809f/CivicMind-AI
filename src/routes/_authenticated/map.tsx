@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { MapPinned } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { ComplaintMap } from "@/components/civic/ComplaintMap";
+import { ComplaintMap, type MapMarker } from "@/components/civic/ComplaintMap";
 import { EmptyState } from "@/components/civic/EmptyState";
 import { PriorityBadge, StatusBadge } from "@/components/civic/badges";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -149,7 +149,7 @@ function MapPage() {
           description="Complaints submitted with a location will appear here as coloured markers."
         />
       ) : (
-        <ComplaintMap markers={markers} height={480} />
+        <ComplaintMap markers={markers} className="h-[480px]" />
       )}
 
       <div className="rounded-2xl border bg-card p-4 shadow-soft">
