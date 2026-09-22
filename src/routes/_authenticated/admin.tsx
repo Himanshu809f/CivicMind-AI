@@ -261,7 +261,7 @@ function AdminConsole() {
     mutationFn: async () => {
       const { error } = await supabase.from("routing_rules").insert({
         category: ruleCategory,
-        department_id: ruleDept || null,
+        department_id: ruleDept,
         sla_hours: Number(ruleSla) || 48,
       });
       if (error) throw error;
