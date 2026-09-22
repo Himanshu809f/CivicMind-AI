@@ -13,9 +13,13 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAssistantRouteImport } from './routes/_authenticated/assistant'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedDepartmentRouteImport } from './routes/_authenticated/department'
+import { Route as AuthenticatedMapRouteImport } from './routes/_authenticated/map'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
+import { Route as AuthenticatedOfficerRouteImport } from './routes/_authenticated/officer'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedComplaintsIndexRouteImport } from './routes/_authenticated/complaints.index'
 import { Route as AuthenticatedComplaintsIdRouteImport } from './routes/_authenticated/complaints.$id'
@@ -40,6 +44,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAssistantRoute = AuthenticatedAssistantRouteImport.update({
   id: '/assistant',
   path: '/assistant',
@@ -50,12 +59,27 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedDepartmentRoute = AuthenticatedDepartmentRouteImport.update({
+  id: '/department',
+  path: '/department',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMapRoute = AuthenticatedMapRouteImport.update({
+  id: '/map',
+  path: '/map',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedNotificationsRoute =
   AuthenticatedNotificationsRouteImport.update({
     id: '/notifications',
     path: '/notifications',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedOfficerRoute = AuthenticatedOfficerRouteImport.update({
+  id: '/officer',
+  path: '/officer',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -84,9 +108,13 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/assistant': typeof AuthenticatedAssistantRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/department': typeof AuthenticatedDepartmentRoute
+  '/map': typeof AuthenticatedMapRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
+  '/officer': typeof AuthenticatedOfficerRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/complaints/$id': typeof AuthenticatedComplaintsIdRoute
   '/complaints/new': typeof AuthenticatedComplaintsNewRoute
@@ -96,9 +124,13 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/assistant': typeof AuthenticatedAssistantRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/department': typeof AuthenticatedDepartmentRoute
+  '/map': typeof AuthenticatedMapRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
+  '/officer': typeof AuthenticatedOfficerRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/complaints/$id': typeof AuthenticatedComplaintsIdRoute
   '/complaints/new': typeof AuthenticatedComplaintsNewRoute
@@ -110,9 +142,13 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/assistant': typeof AuthenticatedAssistantRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/department': typeof AuthenticatedDepartmentRoute
+  '/_authenticated/map': typeof AuthenticatedMapRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
+  '/_authenticated/officer': typeof AuthenticatedOfficerRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/complaints/$id': typeof AuthenticatedComplaintsIdRoute
   '/_authenticated/complaints/new': typeof AuthenticatedComplaintsNewRoute
@@ -124,9 +160,13 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/reset-password'
+    | '/admin'
     | '/assistant'
     | '/dashboard'
+    | '/department'
+    | '/map'
     | '/notifications'
+    | '/officer'
     | '/profile'
     | '/complaints/$id'
     | '/complaints/new'
@@ -136,9 +176,13 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/reset-password'
+    | '/admin'
     | '/assistant'
     | '/dashboard'
+    | '/department'
+    | '/map'
     | '/notifications'
+    | '/officer'
     | '/profile'
     | '/complaints/$id'
     | '/complaints/new'
@@ -149,9 +193,13 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/reset-password'
+    | '/_authenticated/admin'
     | '/_authenticated/assistant'
     | '/_authenticated/dashboard'
+    | '/_authenticated/department'
+    | '/_authenticated/map'
     | '/_authenticated/notifications'
+    | '/_authenticated/officer'
     | '/_authenticated/profile'
     | '/_authenticated/complaints/$id'
     | '/_authenticated/complaints/new'
@@ -195,6 +243,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/assistant': {
       id: '/_authenticated/assistant'
       path: '/assistant'
@@ -209,11 +264,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/department': {
+      id: '/_authenticated/department'
+      path: '/department'
+      fullPath: '/department'
+      preLoaderRoute: typeof AuthenticatedDepartmentRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/map': {
+      id: '/_authenticated/map'
+      path: '/map'
+      fullPath: '/map'
+      preLoaderRoute: typeof AuthenticatedMapRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/notifications': {
       id: '/_authenticated/notifications'
       path: '/notifications'
       fullPath: '/notifications'
       preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/officer': {
+      id: '/_authenticated/officer'
+      path: '/officer'
+      fullPath: '/officer'
+      preLoaderRoute: typeof AuthenticatedOfficerRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/profile': {
@@ -248,9 +324,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedAssistantRoute: typeof AuthenticatedAssistantRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedDepartmentRoute: typeof AuthenticatedDepartmentRoute
+  AuthenticatedMapRoute: typeof AuthenticatedMapRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
+  AuthenticatedOfficerRoute: typeof AuthenticatedOfficerRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedComplaintsIdRoute: typeof AuthenticatedComplaintsIdRoute
   AuthenticatedComplaintsNewRoute: typeof AuthenticatedComplaintsNewRoute
@@ -258,9 +338,13 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedAssistantRoute: AuthenticatedAssistantRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedDepartmentRoute: AuthenticatedDepartmentRoute,
+  AuthenticatedMapRoute: AuthenticatedMapRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
+  AuthenticatedOfficerRoute: AuthenticatedOfficerRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedComplaintsIdRoute: AuthenticatedComplaintsIdRoute,
   AuthenticatedComplaintsNewRoute: AuthenticatedComplaintsNewRoute,
