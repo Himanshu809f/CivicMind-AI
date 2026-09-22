@@ -19,17 +19,17 @@ class MapErrorBoundary extends Component<
   { children: ReactNode; markers: MapMarker[]; onRetry: () => void },
   { failed: boolean }
 > {
-  state = { failed: false };
+  override state = { failed: false };
 
   static getDerivedStateFromError() {
     return { failed: true };
   }
 
-  componentDidCatch(error: unknown) {
+  override componentDidCatch(error: unknown) {
     console.error("Map failed to load:", error);
   }
 
-  render() {
+  override render() {
     if (!this.state.failed) return this.props.children;
     return (
       <div className="flex size-full flex-col items-center justify-center gap-3 p-6 text-center">
