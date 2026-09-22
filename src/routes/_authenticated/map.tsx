@@ -93,7 +93,7 @@ function MapPage() {
           lng: Number(c.longitude),
           title: `${c.complaint_number} · ${c.title}`,
           subtitle: `${categoryMeta(c.category).label} · ${c.status.replace("_", " ")}`,
-          tone: PRIORITY_TONE[c.priority] ?? "muted",
+          tone: PRIORITY_TONE[c.priority] ?? ("primary" as const),
         })),
     [rows],
   );
