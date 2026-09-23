@@ -367,3 +367,134 @@ function num(v: unknown): number | null {
 function arr(v: unknown): string[] {
   return Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
 }
+
+/* ------------------------------ priority ------------------------------ */
+
+const PriorityInput = z.object({
+  category: z.string(),
+  description: z.string().min(3),
+  severity: z.number().nullable().optional(),
+  latitude: z.number().nullable().optional(),
+  longitude: z.number().nullable().optional(),
+});
+
+export type PriorityResult = {
+  source: AiSource;
+  priority: string | null;
+  score: number | null;
+  reason: string | null;
+  confidence: number | null;
+  note?: string;
+};
+
+export const predictPriority = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw: unknown) => PriorityInput.parse(raw))
+  .handler(async ({ data }): Promise<PriorityResult> => {
+    const remote = await callBackend<Partial<PriorityResult>>("/ai/priority", data);
+    if (remote) {
+      return {
+        source: "python-backend",
+        priority: remote.priority ?? null,
+        score: remote.score ?? null,
+        reason: remote.reason ?? null,
+        confidence: remote.confidence ?? null,
+      };
+    }
+
+    const json = await callLovableAi([
+      {
+        role: "system",
+        content:
+          "You triage municipal complaints by urgency. Reply with strict JSON only, no prose.",
+      },
+      {
+        role: "user",
+        content: `Category: ${data.category}
+Severity hint (0-100): ${data.severity ?? "unknown"}
+Location: ${data.latitude ?? "?"},${data.longitude ?? "?"}
+Description: ${data.description}
+
+Weigh public safety risk, number of people affected and how fast it can worsen.
+JSON: {"priority":"LOW|MEDIUM|HIGH|CRITICAL","score":0,"reason":"","confidence":0.0}
+score is 0-100, confidence is 0-1.`,
+      },
+    ]);
+
+    if (!json) {
+      return {
+        source: "unavailable",
+        priority: null,
+        score: null,
+        reason: null,
+        confidence: null,
+        note: "AI service not connected",
+      };
+    }
+
+    return {
+      source: "lovable-ai",
+      priority: str(json["priority"]),
+      score: num(json["score"]),
+      reason: str(json["reason"]),
+      confidence: num(json["confidence"]),
+    };
+  });
+
+/* ------------------------------ summary ------------------------------ */
+
+const SummaryInput = z.object({
+  description: z.string().min(3),
+  language: z.string().optional().default("en"),
+});
+
+export type SummaryResult = {
+  source: AiSource;
+  summary: string | null;
+  language: string;
+  note?: string;
+};
+
+export const generateSummary = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw: unknown) => SummaryInput.parse(raw))
+  .handler(async ({ data }): Promise<SummaryResult> => {
+    const remote = await callBackend<Partial<SummaryResult>>("/ai/summary", data);
+    if (remote) {
+      return {
+        source: "python-backend",
+        summary: remote.summary ?? null,
+        language: remote.language ?? data.language,
+      };
+    }
+
+    const json = await callLovableAi([
+      {
+        role: "system",
+        content:
+          "You condense citizen complaints into one neutral sentence for municipal staff. Reply with strict JSON only.",
+      },
+      {
+        role: "user",
+        content: `Complaint (language ${data.language}):
+${data.description}
+
+JSON: {"summary":"","language":"${data.language}"}`,
+      },
+    ]);
+
+    if (!json) {
+      return {
+        source: "unavailable",
+        summary: null,
+        language: data.language,
+        note: "AI service not connected",
+      };
+    }
+
+    return {
+      source: "lovable-ai",
+      summary: str(json["summary"]),
+      language: str(json["language"]) ?? data.language,
+    };
+  });

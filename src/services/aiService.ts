@@ -17,8 +17,14 @@ import {
   aiHealth as aiHealthFn,
   classifyComplaint as classifyComplaintFn,
   detectDuplicate as detectDuplicateFn,
+  generateSummary as generateSummaryFn,
+  predictPriority as predictPriorityFn,
   type ClassifyResult,
+  type PriorityResult,
+  type SummaryResult,
 } from "@/lib/ai.functions";
+
+export type { PriorityResult, SummaryResult };
 
 export type { ClassifyResult };
 
@@ -61,4 +67,18 @@ export function askAssistant(input: {
 
 export function aiHealth() {
   return aiHealthFn();
+}
+
+export function predictPriority(input: {
+  category: string;
+  description: string;
+  severity?: number | null;
+  latitude?: number | null;
+  longitude?: number | null;
+}) {
+  return predictPriorityFn({ data: input });
+}
+
+export function generateSummary(input: { description: string; language?: string }) {
+  return generateSummaryFn({ data: input });
 }
