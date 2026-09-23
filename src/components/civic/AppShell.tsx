@@ -44,26 +44,30 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const visible = NAV.filter((n) => !n.roles || n.roles.some((r) => roles.includes(r)) || n.roles.includes(primaryRole));
 
   return (
-    <nav className="flex flex-col gap-1">
-      {visible.map((item) => {
-        const active = pathname === item.to || (item.to !== "/dashboard" && pathname.startsWith(item.to));
-        return (
-          <Link
-            key={item.to}
-            to={item.to}
-            onClick={onNavigate}
-            className={cn(
-              "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
-              active
-                ? "bg-primary/12 text-primary shadow-soft"
-                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-            )}
-          >
-            <item.icon className="size-4.5" />
-            {item.label}
-          </Link>
-        );
-      })}
+    <nav aria-label="Main navigation" className="flex flex-col gap-1">
+      <ul className="flex flex-col gap-1">
+        {visible.map((item) => {
+          const active = pathname === item.to || (item.to !== "/dashboard" && pathname.startsWith(item.to));
+          return (
+            <li key={item.to}>
+              <Link
+                to={item.to}
+                onClick={onNavigate}
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "group flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
+                  active
+                    ? "bg-primary/12 text-primary shadow-soft"
+                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                )}
+              >
+                <item.icon className="size-4.5" aria-hidden="true" />
+                {item.label}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
     </nav>
   );
 }
@@ -109,9 +113,15 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r bg-sidebar px-4 py-5 lg:flex">
-        <Link to="/dashboard">
+    <div className="min-h-dvh bg-background">
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
+      <aside
+        aria-label="Sidebar"
+        className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r bg-sidebar px-4 py-5 lg:flex"
+      >
+        <Link to="/dashboard" aria-label="CivicMind AI home">
           <Logo />
         </Link>
         <div className="mt-7 flex-1 overflow-y-auto">
@@ -120,8 +130,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="rounded-2xl border bg-card p-3">
           <p className="truncate text-sm font-semibold">{profile?.full_name ?? user?.email}</p>
           <p className="text-xs text-muted-foreground">{ROLE_LABEL[primaryRole]}</p>
-          <Button variant="ghost" size="sm" className="mt-2 w-full justify-start" onClick={signOut}>
-            <LogOut className="size-4" /> Sign out
+          <Button variant="ghost" size="sm" className="mt-2 min-h-11 w-full justify-start" onClick={signOut}>
+            <LogOut className="size-4" aria-hidden="true" /> Sign out
           </Button>
         </div>
       </aside>
@@ -131,8 +141,13 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="flex items-center gap-2">
             <Sheet open={open} onOpenChange={setOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="lg:hidden">
-                  <Menu className="size-5" />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Open navigation menu"
+                  className="min-h-11 min-w-11 lg:hidden"
+                >
+                  <Menu className="size-5" aria-hidden="true" />
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-72 p-5">
@@ -140,8 +155,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <div className="mt-6">
                   <NavLinks onNavigate={() => setOpen(false)} />
                 </div>
-                <Button variant="ghost" size="sm" className="mt-4 w-full justify-start" onClick={signOut}>
-                  <LogOut className="size-4" /> Sign out
+                <Button variant="ghost" size="sm" className="mt-4 min-h-11 w-full justify-start" onClick={signOut}>
+                  <LogOut className="size-4" aria-hidden="true" /> Sign out
                 </Button>
               </SheetContent>
             </Sheet>
@@ -151,24 +166,38 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button asChild variant="ghost" size="icon" className="relative">
-              <Link to="/notifications" aria-label="Notifications">
-                <Bell className="size-5" />
+            <Button asChild variant="ghost" size="icon" className="relative min-h-11 min-w-11">
+              <Link
+                to="/notifications"
+                aria-label={
+                  unread > 0 ? `Notifications, ${unread} unread` : "Notifications, none unread"
+                }
+              >
+                <Bell className="size-5" aria-hidden="true" />
                 {unread > 0 && (
-                  <span className="absolute -right-0.5 -top-0.5 grid size-4.5 place-items-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
+                  <span
+                    aria-hidden="true"
+                    className="absolute -right-0.5 -top-0.5 grid size-4.5 place-items-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground"
+                  >
                     {unread > 9 ? "9+" : unread}
                   </span>
                 )}
               </Link>
             </Button>
-            <Button asChild size="sm" className="hidden sm:inline-flex">
+            <Button asChild size="sm" className="hidden min-h-11 sm:inline-flex">
               <Link to="/complaints/new">
-                <PlusCircle className="size-4" /> Report issue
+                <PlusCircle className="size-4" aria-hidden="true" /> Report issue
               </Link>
             </Button>
           </div>
         </header>
-        <main className="px-4 py-6 lg:px-8 lg:py-8">{children}</main>
+        {/* Live region so screen readers hear unread-count changes pushed in real time */}
+        <p aria-live="polite" className="sr-only">
+          {unread > 0 ? `${unread} unread notifications` : ""}
+        </p>
+        <main id="main-content" tabIndex={-1} className="px-4 py-6 lg:px-8 lg:py-8">
+          {children}
+        </main>
       </div>
     </div>
   );

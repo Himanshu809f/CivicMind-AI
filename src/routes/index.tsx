@@ -75,37 +75,80 @@ function Landing() {
   const [menu, setMenu] = useState(false);
   const home = session ? "/dashboard" : "/auth";
 
+  const sections = [
+    { href: "#top", label: t("nav.home") },
+    { href: "#how", label: t("nav.how") },
+    { href: "#features", label: t("nav.features") },
+    { href: "#about", label: t("nav.about") },
+    { href: "#contact", label: t("nav.contact") },
+  ];
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
       <header className="sticky top-0 z-30 border-b glass">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 lg:px-8">
           <Logo />
-          <nav className="hidden items-center gap-7 text-sm font-medium text-muted-foreground lg:flex">
-            <a href="#top" className="transition-colors hover:text-foreground">{t("nav.home")}</a>
-            <a href="#how" className="transition-colors hover:text-foreground">{t("nav.how")}</a>
-            <a href="#features" className="transition-colors hover:text-foreground">{t("nav.features")}</a>
-            <a href="#about" className="transition-colors hover:text-foreground">{t("nav.about")}</a>
-            <a href="#contact" className="transition-colors hover:text-foreground">{t("nav.contact")}</a>
+          <nav
+            aria-label="Page sections"
+            className="hidden items-center gap-7 text-sm font-medium text-muted-foreground lg:flex"
+          >
+            {sections.map((s) => (
+              <a key={s.href} href={s.href} className="transition-colors hover:text-foreground">
+                {s.label}
+              </a>
+            ))}
           </nav>
           <div className="flex items-center gap-2">
             <button
+              type="button"
               onClick={() => setLang(lang === "en" ? "hi" : "en")}
-              className="rounded-full border px-2.5 py-1 text-xs font-semibold text-muted-foreground transition-colors hover:bg-accent"
+              aria-label={lang === "en" ? "Switch language to Hindi" : "Switch language to English"}
+              className="min-h-11 rounded-full border px-2.5 py-1 text-xs font-semibold text-muted-foreground transition-colors hover:bg-accent"
             >
               {lang === "en" ? "हिन्दी" : "EN"}
             </button>
-            <Button asChild variant="ghost" size="sm">
+            <Button asChild variant="ghost" size="sm" className="min-h-11">
               <Link to={home}>{t("nav.login")}</Link>
             </Button>
-            <Button asChild size="sm">
+            <Button asChild size="sm" className="min-h-11">
               <Link to="/auth">{t("nav.register")}</Link>
             </Button>
-            <button className="lg:hidden" onClick={() => setMenu(!menu)} aria-label="Menu">
-              <ArrowRight className="size-5" />
+            <button
+              type="button"
+              className="min-h-11 min-w-11 lg:hidden"
+              onClick={() => setMenu(!menu)}
+              aria-label={menu ? "Close section menu" : "Open section menu"}
+              aria-expanded={menu}
+              aria-controls="mobile-sections"
+            >
+              <ArrowRight className="size-5" aria-hidden="true" />
             </button>
           </div>
         </div>
+        {menu && (
+          <nav id="mobile-sections" aria-label="Page sections" className="border-t px-4 py-3 lg:hidden">
+            <ul className="flex flex-col">
+              {sections.map((s) => (
+                <li key={s.href}>
+                  <a
+                    href={s.href}
+                    onClick={() => setMenu(false)}
+                    className="flex min-h-11 items-center text-sm font-medium text-muted-foreground hover:text-foreground"
+                  >
+                    {s.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )}
       </header>
+
+      <main id="main-content" tabIndex={-1}>
+
 
       {/* HERO */}
       <section id="top" className="hero-surface relative overflow-hidden">

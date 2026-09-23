@@ -68,7 +68,7 @@ export function AssistantChat({ context, className }: { context?: string; classN
   return (
     <div className={cn("flex flex-col overflow-hidden rounded-2xl border bg-card shadow-soft", className)}>
       <div className="flex items-center gap-2 border-b px-4 py-3">
-        <span className="brand-gradient grid size-8 place-items-center rounded-lg">
+        <span className="brand-gradient grid size-8 place-items-center rounded-lg" aria-hidden="true">
           <Sparkle className="size-4 text-primary-foreground" />
         </span>
         <div>
@@ -77,7 +77,13 @@ export function AssistantChat({ context, className }: { context?: string; classN
         </div>
       </div>
 
-      <div ref={boxRef} className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
+      <div
+        ref={boxRef}
+        role="log"
+        aria-label="Conversation with CivicMind Assistant"
+        aria-live="polite"
+        className="flex-1 space-y-4 overflow-y-auto px-4 py-4"
+      >
         {messages.map((m, i) => (
           <div key={i} className={cn("flex", m.role === "user" ? "justify-end" : "justify-start")}>
             <div
@@ -88,18 +94,24 @@ export function AssistantChat({ context, className }: { context?: string; classN
                   : "text-foreground",
               )}
             >
+              <span className="sr-only">{m.role === "user" ? "You said: " : "Assistant said: "}</span>
               {m.content}
             </div>
           </div>
         ))}
-        {busy && <p className="animate-pulse text-sm text-muted-foreground">Thinking…</p>}
+        {busy && (
+          <p role="status" className="animate-pulse text-sm text-muted-foreground">
+            Thinking…
+          </p>
+        )}
       </div>
 
       <div className="border-t px-4 py-3">
-        <div className="mb-2 flex flex-wrap gap-1.5">
+        <div className="mb-2 flex flex-wrap gap-1.5" role="group" aria-label="Suggested questions">
           {SUGGESTIONS.map((s) => (
             <button
               key={s}
+              type="button"
               onClick={() => void send(s)}
               className="rounded-full border px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
             >
@@ -117,6 +129,7 @@ export function AssistantChat({ context, className }: { context?: string; classN
           <Textarea
             ref={inputRef}
             rows={1}
+            aria-label="Your message to the assistant"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
@@ -126,10 +139,16 @@ export function AssistantChat({ context, className }: { context?: string; classN
               }
             }}
             placeholder="Ask about reporting, statuses or departments…"
-            className="min-h-10 resize-none"
+            className="min-h-11 resize-none"
           />
-          <Button type="submit" size="icon" disabled={busy || !input.trim()}>
-            <Send className="size-4" />
+          <Button
+            type="submit"
+            size="icon"
+            aria-label="Send message"
+            className="min-h-11 min-w-11"
+            disabled={busy || !input.trim()}
+          >
+            <Send className="size-4" aria-hidden="true" />
           </Button>
         </form>
       </div>
