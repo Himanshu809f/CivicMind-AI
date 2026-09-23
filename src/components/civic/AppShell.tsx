@@ -113,9 +113,15 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r bg-sidebar px-4 py-5 lg:flex">
-        <Link to="/dashboard">
+    <div className="min-h-dvh bg-background">
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
+      <aside
+        aria-label="Sidebar"
+        className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r bg-sidebar px-4 py-5 lg:flex"
+      >
+        <Link to="/dashboard" aria-label="CivicMind AI home">
           <Logo />
         </Link>
         <div className="mt-7 flex-1 overflow-y-auto">
@@ -124,8 +130,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="rounded-2xl border bg-card p-3">
           <p className="truncate text-sm font-semibold">{profile?.full_name ?? user?.email}</p>
           <p className="text-xs text-muted-foreground">{ROLE_LABEL[primaryRole]}</p>
-          <Button variant="ghost" size="sm" className="mt-2 w-full justify-start" onClick={signOut}>
-            <LogOut className="size-4" /> Sign out
+          <Button variant="ghost" size="sm" className="mt-2 min-h-11 w-full justify-start" onClick={signOut}>
+            <LogOut className="size-4" aria-hidden="true" /> Sign out
           </Button>
         </div>
       </aside>
@@ -135,8 +141,13 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="flex items-center gap-2">
             <Sheet open={open} onOpenChange={setOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="lg:hidden">
-                  <Menu className="size-5" />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Open navigation menu"
+                  className="min-h-11 min-w-11 lg:hidden"
+                >
+                  <Menu className="size-5" aria-hidden="true" />
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-72 p-5">
@@ -144,8 +155,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <div className="mt-6">
                   <NavLinks onNavigate={() => setOpen(false)} />
                 </div>
-                <Button variant="ghost" size="sm" className="mt-4 w-full justify-start" onClick={signOut}>
-                  <LogOut className="size-4" /> Sign out
+                <Button variant="ghost" size="sm" className="mt-4 min-h-11 w-full justify-start" onClick={signOut}>
+                  <LogOut className="size-4" aria-hidden="true" /> Sign out
                 </Button>
               </SheetContent>
             </Sheet>
@@ -155,24 +166,41 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button asChild variant="ghost" size="icon" className="relative">
-              <Link to="/notifications" aria-label="Notifications">
-                <Bell className="size-5" />
+            <Button asChild variant="ghost" size="icon" className="relative min-h-11 min-w-11">
+              <Link
+                to="/notifications"
+                aria-label={
+                  unread > 0 ? `Notifications, ${unread} unread` : "Notifications, none unread"
+                }
+              >
+                <Bell className="size-5" aria-hidden="true" />
                 {unread > 0 && (
-                  <span className="absolute -right-0.5 -top-0.5 grid size-4.5 place-items-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
+                  <span
+                    aria-hidden="true"
+                    className="absolute -right-0.5 -top-0.5 grid size-4.5 place-items-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground"
+                  >
                     {unread > 9 ? "9+" : unread}
                   </span>
                 )}
               </Link>
             </Button>
-            <Button asChild size="sm" className="hidden sm:inline-flex">
+            <Button asChild size="sm" className="hidden min-h-11 sm:inline-flex">
               <Link to="/complaints/new">
-                <PlusCircle className="size-4" /> Report issue
+                <PlusCircle className="size-4" aria-hidden="true" /> Report issue
               </Link>
             </Button>
           </div>
         </header>
-        <main className="px-4 py-6 lg:px-8 lg:py-8">{children}</main>
+        {/* Live region so screen readers hear unread-count changes pushed in real time */}
+        <p aria-live="polite" className="sr-only">
+          {unread > 0 ? `${unread} unread notifications` : ""}
+        </p>
+        <main id="main-content" tabIndex={-1} className="px-4 py-6 lg:px-8 lg:py-8">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
       </div>
     </div>
   );
