@@ -53,7 +53,7 @@ export function createApiClient(baseUrl: string, defaultHeaders: Record<string, 
             ...defaultHeaders,
             ...headers,
           },
-          body: body === undefined ? undefined : JSON.stringify(body),
+          ...(body === undefined ? {} : { body: JSON.stringify(body) }),
           signal: controller.signal,
         });
 
