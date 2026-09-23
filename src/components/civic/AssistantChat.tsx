@@ -68,7 +68,7 @@ export function AssistantChat({ context, className }: { context?: string; classN
   return (
     <div className={cn("flex flex-col overflow-hidden rounded-2xl border bg-card shadow-soft", className)}>
       <div className="flex items-center gap-2 border-b px-4 py-3">
-        <span className="brand-gradient grid size-8 place-items-center rounded-lg">
+        <span className="brand-gradient grid size-8 place-items-center rounded-lg" aria-hidden="true">
           <Sparkle className="size-4 text-primary-foreground" />
         </span>
         <div>
@@ -77,7 +77,13 @@ export function AssistantChat({ context, className }: { context?: string; classN
         </div>
       </div>
 
-      <div ref={boxRef} className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
+      <div
+        ref={boxRef}
+        role="log"
+        aria-label="Conversation with CivicMind Assistant"
+        aria-live="polite"
+        className="flex-1 space-y-4 overflow-y-auto px-4 py-4"
+      >
         {messages.map((m, i) => (
           <div key={i} className={cn("flex", m.role === "user" ? "justify-end" : "justify-start")}>
             <div
@@ -88,11 +94,16 @@ export function AssistantChat({ context, className }: { context?: string; classN
                   : "text-foreground",
               )}
             >
+              <span className="sr-only">{m.role === "user" ? "You said: " : "Assistant said: "}</span>
               {m.content}
             </div>
           </div>
         ))}
-        {busy && <p className="animate-pulse text-sm text-muted-foreground">Thinking…</p>}
+        {busy && (
+          <p role="status" className="animate-pulse text-sm text-muted-foreground">
+            Thinking…
+          </p>
+        )}
       </div>
 
       <div className="border-t px-4 py-3">
