@@ -107,10 +107,11 @@ export function AssistantChat({ context, className }: { context?: string; classN
       </div>
 
       <div className="border-t px-4 py-3">
-        <div className="mb-2 flex flex-wrap gap-1.5">
+        <div className="mb-2 flex flex-wrap gap-1.5" role="group" aria-label="Suggested questions">
           {SUGGESTIONS.map((s) => (
             <button
               key={s}
+              type="button"
               onClick={() => void send(s)}
               className="rounded-full border px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
             >
@@ -128,6 +129,7 @@ export function AssistantChat({ context, className }: { context?: string; classN
           <Textarea
             ref={inputRef}
             rows={1}
+            aria-label="Your message to the assistant"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
@@ -137,10 +139,16 @@ export function AssistantChat({ context, className }: { context?: string; classN
               }
             }}
             placeholder="Ask about reporting, statuses or departments…"
-            className="min-h-10 resize-none"
+            className="min-h-11 resize-none"
           />
-          <Button type="submit" size="icon" disabled={busy || !input.trim()}>
-            <Send className="size-4" />
+          <Button
+            type="submit"
+            size="icon"
+            aria-label="Send message"
+            className="min-h-11 min-w-11"
+            disabled={busy || !input.trim()}
+          >
+            <Send className="size-4" aria-hidden="true" />
           </Button>
         </form>
       </div>
