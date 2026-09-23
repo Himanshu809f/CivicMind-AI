@@ -17,8 +17,14 @@ import {
   aiHealth as aiHealthFn,
   classifyComplaint as classifyComplaintFn,
   detectDuplicate as detectDuplicateFn,
+  generateSummary as generateSummaryFn,
+  predictPriority as predictPriorityFn,
   type ClassifyResult,
+  type PriorityResult,
+  type SummaryResult,
 } from "@/lib/ai.functions";
+
+export type { PriorityResult, SummaryResult };
 
 export type { ClassifyResult };
 
