@@ -44,26 +44,30 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const visible = NAV.filter((n) => !n.roles || n.roles.some((r) => roles.includes(r)) || n.roles.includes(primaryRole));
 
   return (
-    <nav className="flex flex-col gap-1">
-      {visible.map((item) => {
-        const active = pathname === item.to || (item.to !== "/dashboard" && pathname.startsWith(item.to));
-        return (
-          <Link
-            key={item.to}
-            to={item.to}
-            onClick={onNavigate}
-            className={cn(
-              "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
-              active
-                ? "bg-primary/12 text-primary shadow-soft"
-                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-            )}
-          >
-            <item.icon className="size-4.5" />
-            {item.label}
-          </Link>
-        );
-      })}
+    <nav aria-label="Main navigation" className="flex flex-col gap-1">
+      <ul className="flex flex-col gap-1">
+        {visible.map((item) => {
+          const active = pathname === item.to || (item.to !== "/dashboard" && pathname.startsWith(item.to));
+          return (
+            <li key={item.to}>
+              <Link
+                to={item.to}
+                onClick={onNavigate}
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "group flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
+                  active
+                    ? "bg-primary/12 text-primary shadow-soft"
+                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                )}
+              >
+                <item.icon className="size-4.5" aria-hidden="true" />
+                {item.label}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
     </nav>
   );
 }
