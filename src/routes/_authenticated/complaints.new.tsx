@@ -335,15 +335,23 @@ function NewComplaint() {
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
         <h1 className="font-display text-3xl font-bold">Report an issue</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+        {/* Announced to screen readers whenever the wizard moves between steps */}
+        <p aria-live="polite" className="mt-1 text-sm text-muted-foreground">
           Step {Math.min(step + 1, 6)} of 6 · {STEPS[step]}
         </p>
-        <Progress value={((step + 1) / 6) * 100} className="mt-3" />
+        <Progress
+          value={((step + 1) / 6) * 100}
+          className="mt-3"
+          aria-label={`Progress: step ${Math.min(step + 1, 6)} of 6`}
+        />
       </div>
 
       {!online && (
-        <div className="flex items-start gap-3 rounded-2xl border border-warning/40 bg-warning/10 p-4 text-sm">
-          <WifiOff className="mt-0.5 size-4.5 text-warning-foreground" />
+        <div
+          role="status"
+          className="flex items-start gap-3 rounded-2xl border border-warning/40 bg-warning/10 p-4 text-sm"
+        >
+          <WifiOff className="mt-0.5 size-4.5 text-warning-foreground" aria-hidden="true" />
           <p>
             You're offline. Your text is saved as a draft on this device — pending sync. Submit again
             once you're back online.
