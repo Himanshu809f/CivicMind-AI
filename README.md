@@ -1,14 +1,18 @@
 # CivicMind AI
 
-CivicMind AI is a modern web application designed to help manage and track civic issues through a simple and user-friendly interface.
+AI-powered civic issue management and complaint tracking platform.
+
+## Overview
+
+CivicMind AI is a modern web application designed to simplify the reporting, management, and tracking of civic issues through a clean and user-friendly interface.
 
 ## Features
 
-- Civic issue and complaint management
+- Civic complaint and issue management
 - Dashboard with issue statistics
-- Issue status tracking
+- Complaint status tracking
 - Recent complaints overview
-- Modern responsive user interface
+- Responsive modern interface
 - Secure backend integration
 - Database-powered application
 
@@ -19,12 +23,11 @@ CivicMind AI is a modern web application designed to help manage and track civic
 - Vite
 - Tailwind CSS
 - Supabase
-- JavaScript / TypeScript
 
 ## Getting Started
 
-### 1. Clone the repository
+### Installation
 
 ```bash
-git clone https://github.com/Himanshu809f/CivicMind-AI.git
-cd CivicMind-AI
+npm install
+npm run dev
