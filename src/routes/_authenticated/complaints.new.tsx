@@ -516,8 +516,8 @@ function NewComplaint() {
               </div>
             )}
             {aiBusy && (
-              <div className="space-y-3 text-center">
-                <Loader2 className="mx-auto size-8 animate-spin text-ai" />
+              <div role="status" aria-live="polite" className="space-y-3 text-center">
+                <Loader2 className="mx-auto size-8 animate-spin text-ai" aria-hidden="true" />
                 <p className="font-semibold">Analysing your complaint…</p>
                 <p className="text-sm text-muted-foreground">
                   Reading the description, inspecting your photo and comparing nearby reports.
