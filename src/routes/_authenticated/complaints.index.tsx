@@ -84,7 +84,8 @@ function ComplaintsList() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-bold">Complaints</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          {/* Announces result counts after searching or filtering */}
+          <p role="status" aria-live="polite" className="mt-1 text-sm text-muted-foreground">
             {isLoading ? "Loading…" : `${rows.length} complaint(s) visible to your role.`}
           </p>
         </div>
