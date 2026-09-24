@@ -11,7 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 export const Route = createFileRoute("/_authenticated/notifications")({
   head: () => ({
     meta: [
-      { title: "Notifications — CivicMind AI" },
+      { title: "CivicMind AI | Notifications" },
       { name: "description", content: "Live updates about your civic complaints: assignment, progress and resolution." },
       { property: "og:title", content: "Notifications — CivicMind AI" },
       { property: "og:description", content: "Live updates about your civic complaints." },

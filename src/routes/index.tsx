@@ -27,7 +27,7 @@ import heroImage from "@/assets/civic-hero.jpg";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "CivicMind AI — Turn Civic Complaints Into Real Action" },
+      { title: "CivicMind AI" },
       {
         name: "description",
         content:
@@ -337,15 +337,14 @@ function Landing() {
           <div>
             <p className="text-sm font-semibold">Contact</p>
             <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-              <li>Civic helpline 1800-100-100</li>
-              <li>support@civicmind.example</li>
-              <li>Municipal Corporation, City Hall</li>
+              <li>CivicMind AI support</li>
+              <li>Secure issue reporting</li>
+              <li>Transparent resolution tracking</li>
             </ul>
           </div>
         </div>
         <div className="border-t px-4 py-5 text-center text-xs text-muted-foreground">
-          © {new Date().getFullYear()} CivicMind AI. Demo contact details — replace them with your
-          municipality's real helpline and address.
+          © {new Date().getFullYear()} CivicMind AI. Complaint-to-action public issue intelligence.
         </div>
       </footer>
     </div>

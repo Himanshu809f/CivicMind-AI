@@ -52,7 +52,7 @@ import {
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
     meta: [
-      { title: "Administration — CivicMind AI" },
+      { title: "CivicMind AI | Administration" },
       {
         name: "description",
         content:
@@ -61,7 +61,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
       { property: "og:title", content: "Administration — CivicMind AI" },
       {
         property: "og:description",
-        content: "Govern users, departments, routing rules and audit history across the CivicMind platform.",
+        content: "Govern users, departments, routing rules and audit history across CivicMind AI.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

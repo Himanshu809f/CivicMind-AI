@@ -38,7 +38,7 @@ import {
 export const Route = createFileRoute("/_authenticated/complaints/new")({
   head: () => ({
     meta: [
-      { title: "Report an issue — CivicMind AI" },
+      { title: "CivicMind AI | Report an issue" },
       { name: "description", content: "Report a civic issue with photos, location and AI-assisted classification." },
       { property: "og:title", content: "Report an issue — CivicMind AI" },
       { property: "og:description", content: "Report a civic issue with photos, location and AI-assisted classification." },

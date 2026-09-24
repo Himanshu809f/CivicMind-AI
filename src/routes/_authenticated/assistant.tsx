@@ -4,9 +4,9 @@ import { AssistantChat } from "@/components/civic/AssistantChat";
 export const Route = createFileRoute("/_authenticated/assistant")({
   head: () => ({
     meta: [
-      { title: "CivicMind Assistant — CivicMind AI" },
+      { title: "CivicMind AI | Assistant" },
       { name: "description", content: "Ask the CivicMind Assistant how to report issues, track complaints and reach the right department." },
-      { property: "og:title", content: "CivicMind Assistant" },
+      { property: "og:title", content: "CivicMind Assistant — CivicMind AI" },
       { property: "og:description", content: "Ask how to report issues, track complaints and reach the right department." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
