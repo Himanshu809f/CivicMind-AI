@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
     meta: [
-      { title: "Choose a new password — CivicMind AI" },
+      { title: "CivicMind AI | Reset password" },
       { name: "description", content: "Set a new password for your CivicMind AI account." },
       { property: "og:title", content: "Choose a new password — CivicMind AI" },
       { property: "og:description", content: "Set a new password for your CivicMind AI account." },

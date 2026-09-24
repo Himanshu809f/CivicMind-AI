@@ -42,7 +42,7 @@ import { assignComplaint } from "@/services/complaintService";
 export const Route = createFileRoute("/_authenticated/department")({
   head: () => ({
     meta: [
-      { title: "Department analytics — CivicMind AI" },
+      { title: "CivicMind AI | Department analytics" },
       {
         name: "description",
         content:

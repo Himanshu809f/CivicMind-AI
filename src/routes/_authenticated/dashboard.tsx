@@ -26,7 +26,7 @@ import { categoryMeta, slaState, type Complaint } from "@/lib/civic";
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
-      { title: "Dashboard — CivicMind AI" },
+      { title: "CivicMind AI | Dashboard" },
       { name: "description", content: "Track your reported civic issues, statuses and resolution progress." },
       { property: "og:title", content: "Dashboard — CivicMind AI" },
       { property: "og:description", content: "Track your reported civic issues, statuses and resolution progress." },

@@ -53,7 +53,7 @@ import { addTimeline, updateComplaintStatus } from "@/services/complaintService"
 export const Route = createFileRoute("/_authenticated/complaints/$id")({
   head: () => ({
     meta: [
-      { title: "Complaint details — CivicMind AI" },
+      { title: "CivicMind AI | Complaint details" },
       { name: "description", content: "Full complaint record: media, AI analysis, timeline and live status updates." },
       { property: "og:title", content: "Complaint details — CivicMind AI" },
       { property: "og:description", content: "Full complaint record: media, AI analysis, timeline and live status updates." },

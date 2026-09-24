@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in — CivicMind AI" },
+      { title: "CivicMind AI | Sign in" },
       { name: "description", content: "Sign in or create your CivicMind AI citizen account to report and track civic issues." },
       { property: "og:title", content: "Sign in — CivicMind AI" },
       { property: "og:description", content: "Access your CivicMind AI account to report and track civic issues." },

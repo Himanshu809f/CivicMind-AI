@@ -41,7 +41,7 @@ import { updateComplaintStatus } from "@/services/complaintService";
 export const Route = createFileRoute("/_authenticated/officer")({
   head: () => ({
     meta: [
-      { title: "Officer queue — CivicMind AI" },
+      { title: "CivicMind AI | Officer queue" },
       {
         name: "description",
         content:

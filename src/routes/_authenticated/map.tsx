@@ -20,7 +20,7 @@ import { CATEGORIES, STATUS_FLOW, categoryMeta, type Complaint } from "@/lib/civ
 export const Route = createFileRoute("/_authenticated/map")({
   head: () => ({
     meta: [
-      { title: "Issue map — CivicMind AI" },
+      { title: "CivicMind AI | Issue map" },
       {
         name: "description",
         content:

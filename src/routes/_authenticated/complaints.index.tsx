@@ -20,7 +20,7 @@ import { CATEGORIES, STATUS_FLOW, categoryMeta, slaState, type Complaint } from 
 export const Route = createFileRoute("/_authenticated/complaints/")({
   head: () => ({
     meta: [
-      { title: "All complaints — CivicMind AI" },
+      { title: "CivicMind AI | Complaints" },
       { name: "description", content: "Search and filter civic complaints by status, category, ward and priority." },
       { property: "og:title", content: "All complaints — CivicMind AI" },
       { property: "og:description", content: "Search and filter civic complaints by status, category, ward and priority." },
