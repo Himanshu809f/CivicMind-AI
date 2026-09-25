@@ -13,18 +13,18 @@ type State = { error: unknown | null };
  * Other errors are re-thrown to the router's own error boundary.
  */
 export class BackendErrorBoundary extends Component<Props, State> {
-  state: State = { error: null };
+  override state: State = { error: null };
 
   static getDerivedStateFromError(error: unknown): State {
     if (!isBackendConfigError(error)) throw error;
     return { error };
   }
 
-  componentDidCatch(error: unknown, info: ErrorInfo) {
+  override componentDidCatch(error: unknown, info: ErrorInfo) {
     console.error("[CivicMind] backend configuration error", error, info.componentStack);
   }
 
-  render() {
+  override render() {
     if (this.state.error) {
       return <BackendRecoveryScreen error={this.state.error} />;
     }
