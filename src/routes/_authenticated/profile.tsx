@@ -23,7 +23,7 @@ export const Route = createFileRoute("/_authenticated/profile")({
       { title: "CivicMind AI | My profile" },
       { name: "description", content: "Update your CivicMind AI profile, ward and language preference." },
       { property: "og:title", content: "My profile — CivicMind AI" },
-      { property: "og:description", content: "Update your profile, ward and language preference." },
+      { property: "og:description", content: "Update your CivicMind AI profile, ward and language preference." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

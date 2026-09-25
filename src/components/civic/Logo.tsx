@@ -11,7 +11,7 @@ export function Logo({ className, compact = false }: { className?: string; compa
         <span className="leading-none">
           <span className="font-display block text-base font-bold tracking-tight">CivicMind AI</span>
           <span className="block text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
-            Complaint to action
+            Public issue intelligence
           </span>
         </span>
       )}
