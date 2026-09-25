@@ -1,8 +1,8 @@
 /* CivicMind AI service worker — conservative network-first caching.
    Offline complaint drafts are kept in localStorage by the reporting wizard;
    submissions are never silently queued, the UI shows the pending state. */
-const CACHE = "civicmind-shell-v1";
-const SHELL = ["/", "/manifest.webmanifest", "/favicon.ico"];
+const CACHE = "civicmind-ai-shell-v2";
+const SHELL = ["/", "/manifest.webmanifest", "/favicon.png", "/icon-192.png", "/icon-512.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
