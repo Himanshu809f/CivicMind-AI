@@ -7,7 +7,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -15,6 +15,12 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { I18nProvider } from "@/lib/i18n";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  BackendRecoveryScreen,
+  isBackendConfigError,
+} from "@/components/civic/BackendRecoveryScreen";
+import { BackendErrorBoundary } from "@/components/civic/BackendErrorBoundary";
+
 
 function NotFoundComponent() {
   return (
@@ -44,6 +50,20 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
+
+  if (isBackendConfigError(error)) {
+    return (
+      <BackendRecoveryScreen
+        error={error}
+        onRetry={() => {
+          router.invalidate();
+          reset();
+        }}
+      />
+    );
+  }
+
+
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -130,6 +150,7 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
+  const [configError, setConfigError] = useState<unknown>(null);
 
   useEffect(() => {
     if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
@@ -142,23 +163,35 @@ function RootComponent() {
   }, []);
 
   useEffect(() => {
-    const { data } = supabase.auth.onAuthStateChange((event) => {
-      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
-      router.invalidate();
-      if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
-    });
-    return () => data.subscription.unsubscribe();
+    try {
+      const { data } = supabase.auth.onAuthStateChange((event) => {
+        if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+        router.invalidate();
+        if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
+      });
+      return () => data.subscription.unsubscribe();
+    } catch (error) {
+      if (!isBackendConfigError(error)) throw error;
+      console.error(error);
+      setConfigError(error);
+      return;
+    }
   }, [router, queryClient]);
+
+  if (configError) return <BackendRecoveryScreen error={configError} />;
 
   return (
     <QueryClientProvider client={queryClient}>
       <I18nProvider>
-        <AuthProvider>
-          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-          <Outlet />
-          <Toaster richColors position="top-right" />
-        </AuthProvider>
+        <BackendErrorBoundary>
+          <AuthProvider>
+            {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+            <Outlet />
+            <Toaster richColors position="top-right" />
+          </AuthProvider>
+        </BackendErrorBoundary>
       </I18nProvider>
+
     </QueryClientProvider>
   );
 }
