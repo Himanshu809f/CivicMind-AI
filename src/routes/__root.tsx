@@ -15,6 +15,12 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { I18nProvider } from "@/lib/i18n";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  BackendRecoveryScreen,
+  isBackendConfigError,
+} from "@/components/civic/BackendRecoveryScreen";
+import { BackendErrorBoundary } from "@/components/civic/BackendErrorBoundary";
+
 
 function NotFoundComponent() {
   return (
@@ -44,6 +50,20 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
+
+  if (isBackendConfigError(error)) {
+    return (
+      <BackendRecoveryScreen
+        error={error}
+        onRetry={() => {
+          router.invalidate();
+          reset();
+        }}
+      />
+    );
+  }
+
+
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
