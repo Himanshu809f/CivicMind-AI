@@ -154,6 +154,16 @@ function RootComponent() {
 
   useEffect(() => {
     if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
+    const hostname = window.location.hostname;
+    const isLovablePreview =
+      hostname === "localhost" ||
+      (hostname.endsWith(".lovable.app") && hostname.includes("-preview--"));
+    if (isLovablePreview) {
+      void navigator.serviceWorker.getRegistrations().then((registrations) => {
+        for (const registration of registrations) void registration.unregister();
+      });
+      return;
+    }
     const timer = setTimeout(() => {
       void navigator.serviceWorker.register("/sw.js").catch((error) => {
         console.warn("Service worker registration skipped", error);
