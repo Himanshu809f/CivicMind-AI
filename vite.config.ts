@@ -7,6 +7,20 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
+  vite: {
+    // These are public browser connection values, not privileged credentials.
+    // The fallback keeps fresh CI/publish checkouts working when managed env
+    // injection is briefly unavailable.
+    define: {
+      "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(
+        process.env['VITE_SUPABASE_URL'] ?? "https://akkkawzhakpmvslglbfa.supabase.co",
+      ),
+      "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(
+        process.env['VITE_SUPABASE_PUBLISHABLE_KEY'] ??
+          "sb_publishable_EVSmI6tjz14VGBlidrAoYQ_Dj219wrY",
+      ),
+    },
+  },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
