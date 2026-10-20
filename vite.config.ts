@@ -13,10 +13,10 @@ export default defineConfig({
     // injection is briefly unavailable.
     define: {
       "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(
-        process.env['VITE_SUPABASE_URL'] ?? "https://akkkawzhakpmvslglbfa.supabase.co",
+        process.env['VITE_SUPABASE_URL'] || "https://akkkawzhakpmvslglbfa.supabase.co",
       ),
       "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(
-        process.env['VITE_SUPABASE_PUBLISHABLE_KEY'] ??
+        process.env['VITE_SUPABASE_PUBLISHABLE_KEY'] ||
           "sb_publishable_EVSmI6tjz14VGBlidrAoYQ_Dj219wrY",
       ),
     },
