@@ -156,7 +156,11 @@ export function AppShell({ children }: { children: ReactNode }) {
                   <NavLinks onNavigate={() => setOpen(false)} />
                 </div>
                 <div className="mt-4 border-t pt-4">
-                  <div className="mb-3 min-w-0" aria-label={`Signed in as ${profile?.full_name ?? user?.email ?? "user"}, ${ROLE_LABEL[primaryRole]}`}>
+                  <div
+                    role="group"
+                    aria-label={`Signed in as ${profile?.full_name ?? user?.email ?? "user"}, ${ROLE_LABEL[primaryRole]}`}
+                    className="mb-3 min-w-0"
+                  >
                     <p className="truncate text-sm font-semibold">{profile?.full_name ?? user?.email}</p>
                     <p className="text-xs text-muted-foreground">{ROLE_LABEL[primaryRole]}</p>
                   </div>
