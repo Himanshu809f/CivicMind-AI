@@ -10,6 +10,7 @@ import {
   Copy,
   Gauge,
   Languages,
+  Menu,
   MapPin,
   MessageSquareHeart,
   Radar,
@@ -17,6 +18,7 @@ import {
   ShieldCheck,
   Sparkles,
   Timer,
+  X,
 } from "lucide-react";
 import { Logo } from "@/components/civic/Logo";
 import { Button } from "@/components/ui/button";
@@ -89,11 +91,12 @@ function Landing() {
         Skip to main content
       </a>
       <header className="sticky top-0 z-30 border-b glass">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 lg:px-8">
-          <Logo />
+        <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-4 py-3 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:gap-4 lg:px-8">
+          <Logo className="sm:hidden" compact />
+          <Logo className="hidden sm:inline-flex" />
           <nav
             aria-label="Page sections"
-            className="hidden items-center gap-7 text-sm font-medium text-muted-foreground lg:flex"
+            className="hidden items-center justify-center gap-7 text-sm font-medium text-muted-foreground lg:flex"
           >
             {sections.map((s) => (
               <a key={s.href} href={s.href} className="transition-colors hover:text-foreground">
@@ -101,7 +104,7 @@ function Landing() {
               </a>
             ))}
           </nav>
-          <div className="flex items-center gap-2">
+          <div className="flex min-w-0 items-center justify-end gap-1.5 sm:gap-2">
             <button
               type="button"
               onClick={() => setLang(lang === "en" ? "hi" : "en")}
@@ -111,20 +114,25 @@ function Landing() {
               {lang === "en" ? "हिन्दी" : "EN"}
             </button>
             <Button asChild variant="ghost" size="sm" className="min-h-11">
-              <Link to={home}>{t("nav.login")}</Link>
+              <Link to={home}>{session ? "Dashboard" : t("nav.login")}</Link>
             </Button>
-            <Button asChild size="sm" className="min-h-11">
-              <Link to="/auth">{t("nav.register")}</Link>
-            </Button>
+            {!session && (
+              <Button asChild size="sm" className="min-h-11 px-3">
+                <Link to="/auth">
+                  <span className="sm:hidden">Join</span>
+                  <span className="hidden sm:inline">{t("nav.register")}</span>
+                </Link>
+              </Button>
+            )}
             <button
               type="button"
-              className="min-h-11 min-w-11 lg:hidden"
+              className="grid min-h-11 min-w-11 place-items-center rounded-md lg:hidden"
               onClick={() => setMenu(!menu)}
               aria-label={menu ? "Close section menu" : "Open section menu"}
               aria-expanded={menu}
               aria-controls="mobile-sections"
             >
-              <ArrowRight className="size-5" aria-hidden="true" />
+              {menu ? <X className="size-5" aria-hidden="true" /> : <Menu className="size-5" aria-hidden="true" />}
             </button>
           </div>
         </div>
