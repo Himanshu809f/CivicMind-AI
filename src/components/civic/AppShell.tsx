@@ -150,14 +150,24 @@ export function AppShell({ children }: { children: ReactNode }) {
                   <Menu className="size-5" aria-hidden="true" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-72 p-5">
+              <SheetContent side="left" className="flex w-72 flex-col p-5">
                 <Logo />
-                <div className="mt-6">
+                <div className="mt-6 flex-1 overflow-y-auto">
                   <NavLinks onNavigate={() => setOpen(false)} />
                 </div>
-                <Button variant="ghost" size="sm" className="mt-4 min-h-11 w-full justify-start" onClick={signOut}>
-                  <LogOut className="size-4" aria-hidden="true" /> Sign out
-                </Button>
+                <div className="mt-4 border-t pt-4">
+                  <div
+                    role="group"
+                    aria-label={`Signed in as ${profile?.full_name ?? user?.email ?? "user"}, ${ROLE_LABEL[primaryRole]}`}
+                    className="mb-3 min-w-0"
+                  >
+                    <p className="truncate text-sm font-semibold">{profile?.full_name ?? user?.email}</p>
+                    <p className="text-xs text-muted-foreground">{ROLE_LABEL[primaryRole]}</p>
+                  </div>
+                  <Button variant="ghost" size="sm" className="min-h-11 w-full justify-start" onClick={signOut}>
+                    <LogOut className="size-4" aria-hidden="true" /> Sign out
+                  </Button>
+                </div>
               </SheetContent>
             </Sheet>
             <span className="lg:hidden">
