@@ -119,8 +119,7 @@ function Landing() {
             {!session && (
               <Button asChild size="sm" className="min-h-11 px-3">
                 <Link to="/auth">
-                  <span className="sm:hidden">Join</span>
-                  <span className="hidden sm:inline">{t("nav.register")}</span>
+                  {t("nav.register")}
                 </Link>
               </Button>
             )}
