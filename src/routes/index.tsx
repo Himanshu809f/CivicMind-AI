@@ -92,7 +92,10 @@ function Landing() {
       </a>
       <header className="sticky top-0 z-30 border-b glass">
         <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-4 py-3 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:gap-4 lg:px-8">
-          <Logo className="sm:hidden" compact />
+          <span className="inline-flex min-w-0 items-center gap-2 sm:hidden">
+            <Logo compact />
+            <span className="font-display truncate text-sm font-bold">CivicMind AI</span>
+          </span>
           <Logo className="hidden sm:inline-flex" />
           <nav
             aria-label="Page sections"
