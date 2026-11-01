@@ -1,3 +1,3 @@
-- [ ] Refresh shared app navigation and landing presentation for small screens.
-- [ ] Make signed-in account and role identity clear for users with different roles/accounts.
-- [ ] Verify key public and authenticated layouts at phone and desktop widths; preserve existing backend behavior.
+- [x] Refresh shared app navigation and landing presentation for small screens.
+- [x] Make signed-in account and role identity clear for users with different roles/accounts.
+- [x] Verify key public and authenticated layouts at phone and desktop widths; preserve existing backend behavior.
