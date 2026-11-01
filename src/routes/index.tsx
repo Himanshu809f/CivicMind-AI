@@ -19,6 +19,7 @@ import {
   Sparkles,
   Timer,
   X,
+  UserPlus,
 } from "lucide-react";
 import { Logo } from "@/components/civic/Logo";
 import { Button } from "@/components/ui/button";
@@ -114,17 +115,23 @@ function Landing() {
               aria-label={lang === "en" ? "Switch language to Hindi" : "Switch language to English"}
               className="min-h-11 rounded-full border px-2.5 py-1 text-xs font-semibold text-muted-foreground transition-colors hover:bg-accent"
             >
-              {lang === "en" ? "हिन्दी" : "EN"}
+              <span className="sm:hidden">{lang === "en" ? "हि" : "EN"}</span>
+              <span className="hidden sm:inline">{lang === "en" ? "हिन्दी" : "EN"}</span>
             </button>
             <Button asChild variant="ghost" size="sm" className="min-h-11">
               <Link to={home}>{session ? "Dashboard" : t("nav.login")}</Link>
             </Button>
             {!session && (
-              <Button asChild size="sm" className="min-h-11 px-3">
-                <Link to="/auth">
-                  {t("nav.register")}
-                </Link>
-              </Button>
+              <>
+                <Button asChild size="icon" className="min-h-11 min-w-11 sm:hidden">
+                  <Link to="/auth" aria-label={t("nav.register")} title={t("nav.register")}>
+                    <UserPlus className="size-4" aria-hidden="true" />
+                  </Link>
+                </Button>
+                <Button asChild size="sm" className="hidden min-h-11 sm:inline-flex">
+                  <Link to="/auth">{t("nav.register")}</Link>
+                </Button>
+              </>
             )}
             <button
               type="button"
