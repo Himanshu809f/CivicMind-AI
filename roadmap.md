@@ -1,3 +1,9 @@
-- [x] Refresh shared app navigation and landing presentation for small screens.
-- [x] Make signed-in account and role identity clear for users with different roles/accounts.
-- [x] Verify key public and authenticated layouts at phone and desktop widths; preserve existing backend behavior.
+- [ ] DB: add UNDER_REVIEW/PENDING/REOPENED statuses; resolution fields (remarks, resolved_by, reopen tracking); complaint_media.media_kind; notifications event_id dedupe; feedback.still_exists; complaint_escalations table; staff media-upload policies; tighten RLS insert policies
+- [ ] Regenerate database types after migration
+- [ ] Services: resolveComplaint (required remarks, before/after uploads, timeline, deduped resolution notification), reopenComplaint, escalateComplaint, notify(eventId) dedupe
+- [ ] Shared ResolveDialog component (officer + department dashboards)
+- [ ] Officer queue: Accept (Under review) / Start (In progress) / Resolve actions, pending stats, new statuses
+- [ ] Department dashboard: prominent Mark as Resolved, pending count, escalation with history, CSV report export
+- [ ] Complaint details: progress tracker with timestamps, resolution card (remarks/officer/date/proof photos), reopen button, "Problem still exists" feedback, receipt download
+- [ ] Citizen dashboard: counts include new statuses; notifications page shows resolution-style notices
+- [ ] Verify build + key flows end-to-end

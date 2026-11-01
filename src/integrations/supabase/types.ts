@@ -178,6 +178,51 @@ export type Database = {
           },
         ]
       }
+      complaint_escalations: {
+        Row: {
+          complaint_id: string
+          created_at: string
+          escalated_by: string | null
+          from_department_id: string | null
+          id: string
+          level: number
+          reason: string | null
+        }
+        Insert: {
+          complaint_id: string
+          created_at?: string
+          escalated_by?: string | null
+          from_department_id?: string | null
+          id?: string
+          level?: number
+          reason?: string | null
+        }
+        Update: {
+          complaint_id?: string
+          created_at?: string
+          escalated_by?: string | null
+          from_department_id?: string | null
+          id?: string
+          level?: number
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "complaint_escalations_complaint_id_fkey"
+            columns: ["complaint_id"]
+            isOneToOne: false
+            referencedRelation: "complaints"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "complaint_escalations_from_department_id_fkey"
+            columns: ["from_department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       complaint_media: {
         Row: {
           ai_analysis: Json | null
@@ -188,6 +233,7 @@ export type Database = {
           file_type: string | null
           file_url: string
           id: string
+          media_kind: string
         }
         Insert: {
           ai_analysis?: Json | null
@@ -198,6 +244,7 @@ export type Database = {
           file_type?: string | null
           file_url: string
           id?: string
+          media_kind?: string
         }
         Update: {
           ai_analysis?: Json | null
@@ -208,6 +255,7 @@ export type Database = {
           file_type?: string | null
           file_url?: string
           id?: string
+          media_kind?: string
         }
         Relationships: [
           {
@@ -276,13 +324,20 @@ export type Database = {
           description: string
           duplicate_group_id: string | null
           duplicate_of: string | null
+          escalated: boolean
+          escalation_level: number
           id: string
           landmark: string | null
           language: string
           latitude: number | null
           longitude: number | null
           priority: Database["public"]["Enums"]["complaint_priority"]
+          reopen_count: number
+          reopen_reason: string | null
+          reopened_at: string | null
+          resolution_remarks: string | null
           resolved_at: string | null
+          resolved_by: string | null
           severity_score: number | null
           sla_deadline: string | null
           sla_hours: number
@@ -310,13 +365,20 @@ export type Database = {
           description: string
           duplicate_group_id?: string | null
           duplicate_of?: string | null
+          escalated?: boolean
+          escalation_level?: number
           id?: string
           landmark?: string | null
           language?: string
           latitude?: number | null
           longitude?: number | null
           priority?: Database["public"]["Enums"]["complaint_priority"]
+          reopen_count?: number
+          reopen_reason?: string | null
+          reopened_at?: string | null
+          resolution_remarks?: string | null
           resolved_at?: string | null
+          resolved_by?: string | null
           severity_score?: number | null
           sla_deadline?: string | null
           sla_hours?: number
@@ -344,13 +406,20 @@ export type Database = {
           description?: string
           duplicate_group_id?: string | null
           duplicate_of?: string | null
+          escalated?: boolean
+          escalation_level?: number
           id?: string
           landmark?: string | null
           language?: string
           latitude?: number | null
           longitude?: number | null
           priority?: Database["public"]["Enums"]["complaint_priority"]
+          reopen_count?: number
+          reopen_reason?: string | null
+          reopened_at?: string | null
+          resolution_remarks?: string | null
           resolved_at?: string | null
+          resolved_by?: string | null
           severity_score?: number | null
           sla_deadline?: string | null
           sla_hours?: number
@@ -415,6 +484,7 @@ export type Database = {
           created_at: string
           id: string
           rating: number
+          still_exists: boolean
         }
         Insert: {
           citizen_id: string
@@ -423,6 +493,7 @@ export type Database = {
           created_at?: string
           id?: string
           rating: number
+          still_exists?: boolean
         }
         Update: {
           citizen_id?: string
@@ -431,6 +502,7 @@ export type Database = {
           created_at?: string
           id?: string
           rating?: number
+          still_exists?: boolean
         }
         Relationships: [
           {
@@ -446,6 +518,7 @@ export type Database = {
         Row: {
           complaint_id: string | null
           created_at: string
+          event_id: string | null
           id: string
           is_read: boolean
           message: string | null
@@ -456,6 +529,7 @@ export type Database = {
         Insert: {
           complaint_id?: string | null
           created_at?: string
+          event_id?: string | null
           id?: string
           is_read?: boolean
           message?: string | null
@@ -466,6 +540,7 @@ export type Database = {
         Update: {
           complaint_id?: string | null
           created_at?: string
+          event_id?: string | null
           id?: string
           is_read?: boolean
           message?: string | null
@@ -625,6 +700,9 @@ export type Database = {
         | "CLOSED"
         | "REJECTED"
         | "DUPLICATE"
+        | "UNDER_REVIEW"
+        | "PENDING"
+        | "REOPENED"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -763,6 +841,9 @@ export const Constants = {
         "CLOSED",
         "REJECTED",
         "DUPLICATE",
+        "UNDER_REVIEW",
+        "PENDING",
+        "REOPENED",
       ],
     },
   },
