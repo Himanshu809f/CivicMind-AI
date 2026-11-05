@@ -105,12 +105,13 @@ function OfficerQueue() {
   }, [data, hasRole, user?.id]);
 
   const stats = useMemo(() => {
-    const open = mine.filter((c) => c.status !== "RESOLVED" && c.status !== "CLOSED");
+    const open = mine.filter((c) => openStates.includes(c.status));
     return {
       assigned: mine.length,
       fresh: mine.filter((c) => c.status === "SUBMITTED" || c.status === "AI_ANALYZED" || c.status === "ASSIGNED").length,
       high: open.filter((c) => c.priority === "HIGH").length,
       critical: open.filter((c) => c.priority === "CRITICAL").length,
+      pending: mine.filter((c) => c.status === "PENDING" || c.status === "REOPENED").length,
       approaching: open.filter((c) => {
         if (!c.sla_deadline || isOverdue(c)) return false;
         return new Date(c.sla_deadline).getTime() - Date.now() < 12 * 3_600_000;
@@ -118,10 +119,11 @@ function OfficerQueue() {
       overdue: open.filter(isOverdue).length,
       resolved: mine.filter((c) => c.status === "RESOLVED" || c.status === "CLOSED").length,
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mine]);
 
   const rows = useMemo(() => {
-    const open = (c: Complaint) => c.status !== "RESOLVED" && c.status !== "CLOSED";
+    const open = (c: Complaint) => openStates.includes(c.status);
     switch (filter) {
       case "NEW":
         return mine.filter((c) => c.status === "SUBMITTED" || c.status === "AI_ANALYZED" || c.status === "ASSIGNED");
