@@ -25,14 +25,18 @@ export async function notify(
   title: string,
   message: string,
   type = "INFO",
+  eventId?: string,
 ) {
-  await supabase.from("notifications").insert({
+  const { error } = await supabase.from("notifications").insert({
     user_id: userId,
     complaint_id: complaintId,
     title,
     message,
     type,
-  });
+    event_id: eventId ?? null,
+  } as never);
+  // A repeated event (same unique event id) is intentionally ignored, not an error.
+  if (error && error.code !== "23505") throw error;
 }
 
 export async function addTimeline(
@@ -244,4 +248,215 @@ export async function assignComplaint(
 export async function signedMediaUrl(path: string) {
   const { data } = await supabase.storage.from("complaint-media").createSignedUrl(path, 3600);
   return data?.signedUrl ?? null;
+}
+
+/** Department admins of a given department (used to notify supervisors). */
+async function departmentAdminIds(departmentId: string | null): Promise<string[]> {
+  if (!departmentId) return [];
+  const { data: roles } = await supabase.from("user_roles").select("user_id").eq("role", "DEPARTMENT_ADMIN");
+  const ids = (roles ?? []).map((r) => r.user_id);
+  if (ids.length === 0) return [];
+  const { data: staff } = await supabase
+    .from("profiles")
+    .select("user_id")
+    .in("user_id", ids)
+    .eq("department_id", departmentId);
+  return (staff ?? []).map((s) => s.user_id);
+}
+
+const MAX_PROOF_BYTES = 10 * 1024 * 1024; // matches the complaint-media bucket limit
+
+type ProofUpload = { path: string; name: string; size: number; type: string; kind: "BEFORE" | "AFTER" };
+
+async function uploadProof(complaintId: string, file: File, kind: "BEFORE" | "AFTER"): Promise<ProofUpload> {
+  if (file.size > MAX_PROOF_BYTES) throw new Error(`${file.name} is larger than the 10 MB upload limit.`);
+  const ext = (file.name.split(".").pop() ?? "jpg").toLowerCase();
+  const path = `${complaintId}/${kind.toLowerCase()}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  const { error } = await supabase.storage.from("complaint-media").upload(path, file, { upsert: false });
+  if (error) throw error;
+  return { path, name: file.name, size: file.size, type: file.type, kind };
+}
+
+export type ResolveComplaintInput = {
+  complaint: Complaint;
+  remarks: string;
+  beforeFiles: File[];
+  afterFiles: File[];
+};
+
+/**
+ * Mark a complaint resolved. Requires resolution remarks; optionally stores
+ * before/after proof photos; notifies the citizen exactly once per resolution.
+ */
+export async function resolveComplaint({ complaint, remarks, beforeFiles, afterFiles }: ResolveComplaintInput) {
+  if (!remarks.trim()) throw new Error("Resolution remarks are required before a complaint can be marked resolved.");
+  const { data: auth } = await supabase.auth.getUser();
+  const officerId = auth.user?.id ?? null;
+  if (!officerId) throw new Error("Sign in required to resolve a complaint.");
+
+  const uploaded: ProofUpload[] = [];
+  for (const f of beforeFiles) uploaded.push(await uploadProof(complaint.id, f, "BEFORE"));
+  for (const f of afterFiles) uploaded.push(await uploadProof(complaint.id, f, "AFTER"));
+
+  const resolvedAt = new Date().toISOString();
+  const { error } = await supabase
+    .from("complaints")
+    .update({
+      status: "RESOLVED",
+      resolved_at: resolvedAt,
+      resolved_by: officerId,
+      resolution_remarks: remarks.trim(),
+    } as never)
+    .eq("id", complaint.id);
+  if (error) throw error;
+
+  if (uploaded.length > 0) {
+    const { error: mediaError } = await supabase.from("complaint_media").insert(
+      uploaded.map((u) => ({
+        complaint_id: complaint.id,
+        file_url: u.path,
+        file_name: u.name,
+        file_size: u.size,
+        file_type: u.type,
+        media_kind: u.kind,
+      })),
+    );
+    if (mediaError) console.error(mediaError);
+  }
+
+  await addTimeline(complaint.id, "RESOLVED", `Marked resolved by the department. ${remarks.trim()}`);
+  await notify(
+    complaint.citizen_id,
+    complaint.id,
+    "Your complaint has been successfully resolved!",
+    `Complaint ${complaint.complaint_number} (${complaint.title}) was resolved by the concerned department on ${new Date(resolvedAt).toLocaleString()}. Officer remarks: ${remarks.trim()}. Please review the resolution details.`,
+    "SUCCESS",
+    `resolved:${complaint.id}:${complaint.reopen_count ?? 0}`,
+  );
+  await logAudit("complaint.resolved", "complaint", complaint.id, {
+    remarks: remarks.trim(),
+    proofPhotos: uploaded.length,
+  });
+  return { resolvedAt, proofCount: uploaded.length };
+}
+
+/** Citizen reopens their own complaint when the reported issue persists. */
+export async function reopenComplaint(complaint: Complaint, reason: string) {
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user || auth.user.id !== complaint.citizen_id) {
+    throw new Error("Only the citizen who reported this issue can reopen it.");
+  }
+  const attempt = (complaint.reopen_count ?? 0) + 1;
+  const { error } = await supabase
+    .from("complaints")
+    .update({
+      status: "REOPENED",
+      reopened_at: new Date().toISOString(),
+      reopen_reason: reason.trim() || null,
+      reopen_count: attempt,
+      resolved_at: null,
+    } as never)
+    .eq("id", complaint.id);
+  if (error) throw error;
+
+  await addTimeline(
+    complaint.id,
+    "REOPENED",
+    reason.trim()
+      ? `Citizen reopened the complaint: ${reason.trim()}`
+      : "Citizen reopened the complaint — the issue was not fully resolved.",
+  );
+  await notify(
+    complaint.citizen_id,
+    complaint.id,
+    `Complaint ${complaint.complaint_number} reopened`,
+    "Your complaint has been reopened and sent back to the department for another look.",
+    "INFO",
+    `reopened:${complaint.id}:${attempt}`,
+  );
+  const targets = new Set<string>();
+  if (complaint.assigned_officer_id) targets.add(complaint.assigned_officer_id);
+  for (const id of await departmentAdminIds(complaint.assigned_department_id)) targets.add(id);
+  for (const t of targets) {
+    await notify(
+      t,
+      complaint.id,
+      `Complaint ${complaint.complaint_number} reopened by the citizen`,
+      `The citizen reports this issue is still not resolved${reason.trim() ? `: ${reason.trim()}` : "."} Please take action again.`,
+      "WARNING",
+      `reopened-staff:${complaint.id}:${t}:${attempt}`,
+    );
+  }
+  await logAudit("complaint.reopened", "complaint", complaint.id, { reason: reason.trim() });
+}
+
+/** Escalate an overdue complaint to higher authorities and record the history. */
+export async function escalateComplaint(complaint: Complaint, reason: string) {
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) throw new Error("Sign in required to escalate a complaint.");
+  const level = (complaint.escalation_level ?? 0) + 1;
+  const { error } = await supabase.from("complaint_escalations").insert({
+    complaint_id: complaint.id,
+    level,
+    reason: reason.trim() || null,
+    escalated_by: auth.user.id,
+    from_department_id: complaint.assigned_department_id,
+  });
+  if (error) throw error;
+  const { error: upErr } = await supabase
+    .from("complaints")
+    .update({ escalated: true, escalation_level: level } as never)
+    .eq("id", complaint.id);
+  if (upErr) throw upErr;
+
+  await addTimeline(complaint.id, null, `Escalated to level ${level} authorities.`, { level, reason: reason.trim() });
+  const targets = new Set<string>();
+  for (const id of await departmentAdminIds(complaint.assigned_department_id)) targets.add(id);
+  const { data: supers } = await supabase.from("user_roles").select("user_id").eq("role", "SUPER_ADMIN");
+  for (const s of supers ?? []) targets.add(s.user_id);
+  for (const t of targets) {
+    await notify(
+      t,
+      complaint.id,
+      `Complaint ${complaint.complaint_number} escalated (level ${level})`,
+      `${complaint.title} has crossed its resolution deadline and was escalated${reason.trim() ? `: ${reason.trim()}` : "."}`,
+      "WARNING",
+      `escalated:${complaint.id}:${level}:${t}`,
+    );
+  }
+  await logAudit("complaint.escalated", "complaint", complaint.id, { level, reason: reason.trim() });
+  return level;
+}
+
+/** Downloadable complaint receipt for citizens. */
+export function downloadReceipt(complaint: Complaint, departmentName: string | null) {
+  const lines = [
+    "CIVICMIND AI — COMPLAINT RECEIPT",
+    "================================",
+    "",
+    `Complaint ID:      ${complaint.complaint_number}`,
+    `Title:             ${complaint.title}`,
+    `Category:          ${categoryMeta(complaint.category).label}${complaint.subcategory ? ` / ${complaint.subcategory}` : ""}`,
+    `Status:            ${complaint.status.replace("_", " ")}`,
+    `Priority:          ${complaint.priority}`,
+    `Department:        ${departmentName ?? categoryMeta(complaint.category).department}`,
+    `Location:          ${[complaint.address, complaint.ward, complaint.city].filter(Boolean).join(", ") || "Captured on map"}`,
+    "",
+    `Submitted:         ${new Date(complaint.created_at).toLocaleString()}`,
+    complaint.resolved_at ? `Resolved:          ${new Date(complaint.resolved_at).toLocaleString()}` : "",
+    complaint.reopened_at ? `Reopened:          ${new Date(complaint.reopened_at).toLocaleString()}` : "",
+    `SLA deadline:      ${complaint.sla_deadline ? new Date(complaint.sla_deadline).toLocaleString() : "—"}`,
+    "",
+    complaint.resolution_remarks ? `Resolution remarks: ${complaint.resolution_remarks}` : "",
+    "",
+    "Track this complaint any time in the CivicMind AI app.",
+    `Issued: ${new Date().toLocaleString()}`,
+  ].filter(Boolean);
+  const blob = new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `receipt-${complaint.complaint_number}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
