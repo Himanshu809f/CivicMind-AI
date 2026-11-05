@@ -25,14 +25,18 @@ export async function notify(
   title: string,
   message: string,
   type = "INFO",
+  eventId?: string,
 ) {
-  await supabase.from("notifications").insert({
+  const { error } = await supabase.from("notifications").insert({
     user_id: userId,
     complaint_id: complaintId,
     title,
     message,
     type,
-  });
+    event_id: eventId ?? null,
+  } as never);
+  // A repeated event (same unique event id) is intentionally ignored, not an error.
+  if (error && error.code !== "23505") throw error;
 }
 
 export async function addTimeline(

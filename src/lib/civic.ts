@@ -89,12 +89,15 @@ export function categoryMeta(value: string | null | undefined) {
 export const STATUS_META: Record<ComplaintStatus, { label: string; tone: string; step: number }> = {
   SUBMITTED: { label: "Submitted", tone: "bg-muted text-muted-foreground", step: 1 },
   AI_ANALYZED: { label: "AI analysed", tone: "bg-ai/15 text-ai", step: 2 },
+  UNDER_REVIEW: { label: "Under review", tone: "bg-signal/15 text-signal", step: 3 },
   ASSIGNED: { label: "Assigned", tone: "bg-primary/15 text-primary", step: 3 },
   IN_PROGRESS: { label: "In progress", tone: "bg-signal/20 text-signal-foreground", step: 4 },
+  PENDING: { label: "Pending", tone: "bg-warning/15 text-warning-foreground", step: 4 },
   RESOLVED: { label: "Resolved", tone: "bg-success/15 text-success", step: 5 },
   CLOSED: { label: "Closed", tone: "bg-secondary text-secondary-foreground", step: 6 },
   REJECTED: { label: "Rejected", tone: "bg-destructive/15 text-destructive", step: 6 },
   DUPLICATE: { label: "Duplicate", tone: "bg-warning/20 text-warning-foreground", step: 6 },
+  REOPENED: { label: "Reopened", tone: "bg-critical/15 text-critical", step: 4 },
 };
 
 export const PRIORITY_META: Record<ComplaintPriority, { label: string; tone: string }> = {
