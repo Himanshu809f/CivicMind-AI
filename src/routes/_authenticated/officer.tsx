@@ -28,8 +28,9 @@ import {
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ResolveDialog } from "@/components/civic/ResolveDialog";
 import {
-  STATUS_FLOW,
+  STATUS_META,
   categoryMeta,
   isOverdue,
   slaState,
@@ -68,6 +69,9 @@ function OfficerQueue() {
   const [active, setActive] = useState<Complaint | null>(null);
   const [nextStatus, setNextStatus] = useState<ComplaintStatus>("IN_PROGRESS");
   const [note, setNote] = useState("");
+  const [resolveTarget, setResolveTarget] = useState<Complaint | null>(null);
+
+  const openStates: ComplaintStatus[] = ["SUBMITTED", "AI_ANALYZED", "UNDER_REVIEW", "ASSIGNED", "IN_PROGRESS", "PENDING", "REOPENED"];
 
   const { data, isLoading } = useQuery({
     queryKey: ["officer-queue"],
