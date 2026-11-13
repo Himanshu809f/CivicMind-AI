@@ -18,7 +18,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { BarChart3, Building2, Gauge, Star, Timer, Users } from "lucide-react";
+import { AlertTriangle, BarChart3, Building2, CheckCircle2, Download, Gauge, Star, Timer, Users } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -36,8 +36,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CATEGORIES, STATUS_FLOW, categoryMeta, isOverdue, type Complaint, type Profile } from "@/lib/civic";
-import { assignComplaint } from "@/services/complaintService";
+import { CATEGORIES, STATUS_META, categoryMeta, isOverdue, type Complaint, type Profile } from "@/lib/civic";
+import { assignComplaint, escalateComplaint } from "@/services/complaintService";
+import { ResolveDialog } from "@/components/civic/ResolveDialog";
 
 export const Route = createFileRoute("/_authenticated/department")({
   head: () => ({
@@ -71,6 +72,7 @@ function DepartmentDashboard() {
   const [ward, setWard] = useState("");
   const [from, setFrom] = useState("");
   const [assignTarget, setAssignTarget] = useState<string>("");
+  const [resolveTarget, setResolveTarget] = useState<Complaint | null>(null);
 
   const complaintsQuery = useQuery({
     queryKey: ["dept-complaints"],
@@ -223,15 +225,53 @@ function DepartmentDashboard() {
     onError: (e: Error) => toast.error("Could not assign officer", { description: e.message }),
   });
 
+  const escalate = useMutation({
+    mutationFn: async (c: Complaint) => escalateComplaint(c, "Resolution deadline missed"),
+    onSuccess: (level) => {
+      toast.success(`Escalated to level ${level}`, { description: "Supervisors have been notified." });
+      void queryClient.invalidateQueries({ queryKey: ["dept-complaints"] });
+    },
+    onError: (e: Error) => toast.error("Could not escalate", { description: e.message }),
+  });
+
+  const overdueOpen = useMemo(() => rows.filter(isOverdue), [rows]);
+  const pendingCount = rows.filter((c) => c.status === "PENDING" || c.status === "REOPENED").length;
+  const actionable = useMemo(
+    () => rows.filter((c) => !["RESOLVED", "CLOSED", "REJECTED", "DUPLICATE"].includes(c.status)).slice(0, 15),
+    [rows],
+  );
+
+  function exportCsv() {
+    const header = ["Complaint ID", "Title", "Category", "Status", "Priority", "Ward", "Created", "Resolved", "SLA deadline", "Escalation level"];
+    const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const lines = rows.map((c) =>
+      [c.complaint_number, c.title, categoryMeta(c.category).label, c.status, c.priority, c.ward, c.created_at, c.resolved_at, c.sla_deadline, c.escalation_level]
+        .map(esc)
+        .join(","),
+    );
+    const blob = new Blob([[header.map(esc).join(","), ...lines].join("\n")], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `civicmind-report-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   const loading = complaintsQuery.isLoading;
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-3xl font-bold">Department control room</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Volume, SLA compliance and officer performance for the complaints your role can see.
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="font-display text-3xl font-bold">Department control room</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Volume, SLA compliance and officer performance for the complaints your role can see.
+          </p>
+        </div>
+        <Button variant="outline" size="sm" onClick={exportCsv} disabled={rows.length === 0}>
+          <Download className="size-4" /> Download report (Excel CSV)
+        </Button>
       </div>
 
       <div className="grid gap-3 rounded-2xl border bg-card p-4 shadow-soft md:grid-cols-5">
@@ -248,8 +288,8 @@ function DepartmentDashboard() {
           <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL">All statuses</SelectItem>
-            {STATUS_FLOW.map((s) => (
-              <SelectItem key={s} value={s}>{s.replace("_", " ")}</SelectItem>
+            {(Object.keys(STATUS_META) as (keyof typeof STATUS_META)[]).map((s) => (
+              <SelectItem key={s} value={s}>{STATUS_META[s].label}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -284,6 +324,37 @@ function DepartmentDashboard() {
           loading={loading}
           hint={`${kpi.overdue} overdue now`}
         />
+      </div>
+
+      <div className="rounded-2xl border bg-card p-5 shadow-soft">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="font-display text-lg font-semibold">Open complaints — action needed</h2>
+          <span className="text-xs text-muted-foreground">{pendingCount} pending / reopened · {overdueOpen.length} overdue</span>
+        </div>
+        {actionable.length === 0 ? (
+          <p className="mt-3 text-sm text-muted-foreground">No open complaints in this selection.</p>
+        ) : (
+          <ul className="mt-3 divide-y">
+            {actionable.map((c) => (
+              <li key={c.id} className="flex flex-wrap items-center gap-2 py-3">
+                <Link to="/complaints/$id" params={{ id: c.id }} className="min-w-0 flex-1 text-sm font-medium hover:text-primary">
+                  <span className="font-mono text-xs text-muted-foreground">{c.complaint_number}</span> {c.title}
+                </Link>
+                <StatusBadge status={c.status} />
+                <PriorityBadge priority={c.priority} />
+                {c.escalated && <span className="text-xs font-semibold text-critical">Escalated L{c.escalation_level}</span>}
+                {isOverdue(c) && (
+                  <Button size="sm" variant="outline" disabled={escalate.isPending} onClick={() => escalate.mutate(c)}>
+                    <AlertTriangle className="size-4" /> Escalate
+                  </Button>
+                )}
+                <Button size="sm" onClick={() => setResolveTarget(c)}>
+                  <CheckCircle2 className="size-4" /> Mark as resolved
+                </Button>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -465,6 +536,11 @@ function DepartmentDashboard() {
           </ul>
         )}
       </div>
+      <ResolveDialog
+        complaint={resolveTarget}
+        onClose={() => setResolveTarget(null)}
+        onResolved={() => void queryClient.invalidateQueries({ queryKey: ["dept-complaints"] })}
+      />
     </div>
   );
 }

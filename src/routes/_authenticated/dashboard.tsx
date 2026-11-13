@@ -149,13 +149,13 @@ function Dashboard() {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Open"
-          value={count((c) => ["SUBMITTED", "AI_ANALYZED", "ASSIGNED"].includes(c.status))}
+          value={count((c) => ["SUBMITTED", "AI_ANALYZED", "UNDER_REVIEW", "ASSIGNED"].includes(c.status))}
           icon={ClipboardList}
           loading={loading}
         />
         <StatCard
           label="In progress"
-          value={count((c) => c.status === "IN_PROGRESS")}
+          value={count((c) => ["IN_PROGRESS", "PENDING", "REOPENED"].includes(c.status))}
           icon={Loader2}
           accent="signal"
           loading={loading}
