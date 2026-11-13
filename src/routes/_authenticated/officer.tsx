@@ -151,6 +151,9 @@ function OfficerQueue() {
   const update = useMutation({
     mutationFn: async () => {
       if (!active) return;
+      if ((nextStatus === "REJECTED" || nextStatus === "PENDING") && !note.trim()) {
+        throw new Error("Please give a reason for this status.");
+      }
       await updateComplaintStatus(active.id, nextStatus, note, active.citizen_id, active.complaint_number);
     },
     onSuccess: () => {
@@ -177,7 +180,8 @@ function OfficerQueue() {
         <StatCard label="SLA approaching" value={stats.approaching} icon={Timer} accent="warning" loading={isLoading} />
         <StatCard label="Overdue" value={stats.overdue} icon={AlertTriangle} accent="critical" loading={isLoading} />
       </div>
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard label="Pending / reopened" value={stats.pending} icon={Inbox} accent="warning" loading={isLoading} />
         <StatCard label="High priority" value={stats.high} icon={Clock} accent="warning" loading={isLoading} />
         <StatCard label="Critical" value={stats.critical} icon={AlertTriangle} accent="critical" loading={isLoading} />
         <StatCard label="Resolved / closed" value={stats.resolved} icon={CheckCircle2} accent="success" loading={isLoading} />
@@ -241,6 +245,11 @@ function OfficerQueue() {
                         <Button asChild size="sm" variant="ghost">
                           <Link to="/complaints/$id" params={{ id: c.id }}>View</Link>
                         </Button>
+                        {c.status !== "RESOLVED" && c.status !== "CLOSED" && c.status !== "REJECTED" && (
+                          <Button size="sm" onClick={() => setResolveTarget(c)}>
+                            <CheckCircle2 className="size-4" /> Mark as resolved
+                          </Button>
+                        )}
                         <Button
                           size="sm"
                           variant="outline"
@@ -274,11 +283,9 @@ function OfficerQueue() {
             <Select value={nextStatus} onValueChange={(v) => setNextStatus(v as ComplaintStatus)}>
               <SelectTrigger><SelectValue placeholder="New status" /></SelectTrigger>
               <SelectContent>
-                {STATUS_FLOW.map((s) => (
-                  <SelectItem key={s} value={s}>{s.replace("_", " ")}</SelectItem>
+                {(["UNDER_REVIEW", "ASSIGNED", "IN_PROGRESS", "PENDING", "CLOSED", "REJECTED", "DUPLICATE"] as ComplaintStatus[]).map((s) => (
+                  <SelectItem key={s} value={s}>{STATUS_META[s].label}</SelectItem>
                 ))}
-                <SelectItem value="REJECTED">REJECTED</SelectItem>
-                <SelectItem value="DUPLICATE">DUPLICATE</SelectItem>
               </SelectContent>
             </Select>
             <Textarea
@@ -296,6 +303,12 @@ function OfficerQueue() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ResolveDialog
+        complaint={resolveTarget}
+        onClose={() => setResolveTarget(null)}
+        onResolved={() => void queryClient.invalidateQueries({ queryKey: ["officer-queue"] })}
+      />
     </div>
   );
 }
