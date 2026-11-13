@@ -1,9 +1,5 @@
-- [ ] DB: add UNDER_REVIEW/PENDING/REOPENED statuses; resolution fields (remarks, resolved_by, reopen tracking); complaint_media.media_kind; notifications event_id dedupe; feedback.still_exists; complaint_escalations table; staff media-upload policies; tighten RLS insert policies
-- [ ] Regenerate database types after migration
-- [ ] Services: resolveComplaint (required remarks, before/after uploads, timeline, deduped resolution notification), reopenComplaint, escalateComplaint, notify(eventId) dedupe
-- [ ] Shared ResolveDialog component (officer + department dashboards)
-- [ ] Officer queue: Accept (Under review) / Start (In progress) / Resolve actions, pending stats, new statuses
-- [ ] Department dashboard: prominent Mark as Resolved, pending count, escalation with history, CSV report export
-- [ ] Complaint details: progress tracker with timestamps, resolution card (remarks/officer/date/proof photos), reopen button, "Problem still exists" feedback, receipt download
-- [ ] Citizen dashboard: counts include new statuses; notifications page shows resolution-style notices
-- [ ] Verify build + key flows end-to-end
+- [x] Workflow statuses (Under review, Pending, Reopened), resolution details, proof photos, escalation history, duplicate-safe notifications, tighter security rules
+- [x] Mark as Resolved (required remarks + before/after photos) on officer queue, department dashboard and complaint page
+- [x] Citizen progress tracker with timestamps, resolution card, reopen / "Problem still exists", receipt download
+- [x] Department: action list, escalation of overdue complaints, CSV report download
+- [ ] Not yet done: PDF reports, push/email notifications, automatic (scheduled) escalation, map hotspot layer

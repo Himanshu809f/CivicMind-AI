@@ -5,8 +5,11 @@ import {
   AlertTriangle,
   ArrowLeft,
   Building2,
+  CheckCircle2,
   Copy,
+  Download,
   Loader2,
+  RotateCcw,
   MapPin,
   MessageSquare,
   Sparkles,
@@ -41,14 +44,14 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
-  STATUS_FLOW,
   STATUS_META,
   categoryMeta,
   slaState,
   type Complaint,
   type ComplaintStatus,
 } from "@/lib/civic";
-import { addTimeline, updateComplaintStatus } from "@/services/complaintService";
+import { addTimeline, downloadReceipt, reopenComplaint, updateComplaintStatus } from "@/services/complaintService";
+import { ResolveDialog } from "@/components/civic/ResolveDialog";
 
 export const Route = createFileRoute("/_authenticated/complaints/$id")({
   head: () => ({
@@ -73,6 +76,8 @@ function ComplaintDetail() {
   const [busy, setBusy] = useState(false);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
+  const [stillExists, setStillExists] = useState(false);
+  const [resolveOpen, setResolveOpen] = useState(false);
 
   const complaintQuery = useQuery({
     queryKey: ["complaint", id],
@@ -129,12 +134,13 @@ function ComplaintDetail() {
 
   useEffect(() => {
     const channel = supabase
-      .channel(`complaint-${id}`)
+      .channel(`complaint-${id}-${Math.random().toString(36).slice(2)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "complaints", filter: `id=eq.${id}` }, () => {
         void complaintQuery.refetch();
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "complaint_timeline", filter: `complaint_id=eq.${id}` }, () => {
         void timelineQuery.refetch();
+        void mediaQuery.refetch();
       })
       .subscribe();
     return () => {
@@ -184,14 +190,43 @@ function ComplaintDetail() {
       citizen_id: user.id,
       rating,
       comment: comment || null,
-    });
-    setBusy(false);
+      still_exists: stillExists,
+    } as never);
     if (error) {
+      setBusy(false);
       toast.error("Could not save your feedback.");
       return;
     }
-    toast.success("Thanks for your feedback!");
+    if (stillExists) {
+      try {
+        await reopenComplaint(complaint, comment || "Citizen reports the problem still exists.");
+        toast.success("Complaint reopened", { description: "The department has been notified." });
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : "Could not reopen the complaint.");
+      }
+    } else {
+      toast.success("Thanks for your feedback!");
+    }
+    setBusy(false);
     void feedbackQuery.refetch();
+    void complaintQuery.refetch();
+    void timelineQuery.refetch();
+  }
+
+  async function reopen() {
+    if (!complaint) return;
+    setBusy(true);
+    try {
+      await reopenComplaint(complaint, comment);
+      toast.success("Complaint reopened", { description: "The department has been notified." });
+      setComment("");
+      void complaintQuery.refetch();
+      void timelineQuery.refetch();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not reopen the complaint.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   if (complaintQuery.isLoading) {
@@ -223,6 +258,21 @@ function ComplaintDetail() {
   const aiSource = ai?.["source"] as string | undefined;
   const isOwner = complaint.citizen_id === user?.id;
   const canRate = isOwner && ["RESOLVED", "CLOSED"].includes(complaint.status) && !feedbackQuery.data;
+  const canReopen = isOwner && ["RESOLVED", "CLOSED"].includes(complaint.status);
+  const canResolve = isStaff && !["RESOLVED", "CLOSED", "REJECTED", "DUPLICATE"].includes(complaint.status);
+  const timeline = timelineQuery.data ?? [];
+  const stageAt = (statuses: string[]) =>
+    [...timeline].reverse().find((t) => t.status && statuses.includes(t.status))?.created_at ?? null;
+  const stages = [
+    { label: "Submitted", at: complaint.created_at, done: true },
+    { label: "Assigned", at: stageAt(["ASSIGNED", "UNDER_REVIEW"]), done: STATUS_META[complaint.status].step >= 3 },
+    { label: "In progress", at: stageAt(["IN_PROGRESS", "PENDING", "REOPENED"]), done: STATUS_META[complaint.status].step >= 4 },
+    { label: "Resolved", at: complaint.resolved_at, done: ["RESOLVED", "CLOSED"].includes(complaint.status) },
+  ];
+  const media = mediaQuery.data ?? [];
+  const evidence = media.filter((m) => ((m as { media_kind?: string }).media_kind ?? "EVIDENCE") === "EVIDENCE");
+  const proofBefore = media.filter((m) => (m as { media_kind?: string }).media_kind === "BEFORE");
+  const proofAfter = media.filter((m) => (m as { media_kind?: string }).media_kind === "AFTER");
   const dept = deptQuery.data?.find((d) => d.id === complaint.assigned_department_id);
 
   return (
@@ -248,7 +298,67 @@ function ComplaintDetail() {
           <Meta icon={UserRound} label="Ward" value={complaint.ward ?? "—"} />
           <Meta icon={Timer} label="Category" value={categoryMeta(complaint.category).label} />
         </dl>
+        <div className="mt-5 flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" onClick={() => downloadReceipt(complaint, dept?.name ?? null)}>
+            <Download className="size-4" /> Download receipt
+          </Button>
+          {canResolve && (
+            <Button size="sm" onClick={() => setResolveOpen(true)}>
+              <CheckCircle2 className="size-4" /> Mark as resolved
+            </Button>
+          )}
+        </div>
       </div>
+
+      <section aria-label="Progress" className="rounded-2xl border bg-card p-5 shadow-soft">
+        <ol className="grid grid-cols-4 gap-2">
+          {stages.map((st, i) => (
+            <li key={st.label} className="flex flex-col items-center text-center">
+              <div className="flex w-full items-center">
+                <span className={`h-0.5 flex-1 ${i === 0 ? "opacity-0" : st.done ? "bg-primary" : "bg-border"}`} />
+                <span className={`grid size-8 place-items-center rounded-full border-2 text-xs font-bold ${st.done ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground"}`}>
+                  {i + 1}
+                </span>
+                <span className={`h-0.5 flex-1 ${i === stages.length - 1 ? "opacity-0" : stages[i + 1]?.done ? "bg-primary" : "bg-border"}`} />
+              </div>
+              <p className="mt-2 text-xs font-semibold sm:text-sm">{st.label}</p>
+              <p className="text-[11px] text-muted-foreground">{st.at && st.done ? new Date(st.at).toLocaleString() : "—"}</p>
+            </li>
+          ))}
+        </ol>
+        {complaint.status === "REOPENED" && (
+          <p className="mt-3 text-sm text-critical">Reopened by the citizen{complaint.reopen_reason ? `: ${complaint.reopen_reason}` : ""}.</p>
+        )}
+      </section>
+
+      {complaint.resolution_remarks && (
+        <section className="rounded-2xl border border-success/40 bg-success/8 p-5">
+          <h2 className="font-display flex items-center gap-2 text-lg font-semibold text-success">
+            <CheckCircle2 className="size-5" />
+            {complaint.status === "RESOLVED" || complaint.status === "CLOSED" ? "Your complaint has been successfully resolved!" : "Previous resolution"}
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {complaint.resolved_at ? `Resolved on ${new Date(complaint.resolved_at).toLocaleString()}` : "Earlier resolution was reopened"} · {dept?.name ?? categoryMeta(complaint.category).department}
+          </p>
+          <p className="mt-3 text-sm"><strong>Officer remarks: </strong>{complaint.resolution_remarks}</p>
+          {(proofBefore.length > 0 || proofAfter.length > 0) && (
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              {[{ label: "Before", list: proofBefore }, { label: "After", list: proofAfter }].map((g) => (
+                <div key={g.label}>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{g.label}</p>
+                  <div className="mt-1.5 grid grid-cols-2 gap-2">
+                    {g.list.length === 0 ? <p className="text-xs text-muted-foreground">No photo</p> : g.list.map((m) => m.url && (
+                      <a key={m.id} href={m.url} target="_blank" rel="noreferrer">
+                        <img src={m.url} alt={`${g.label} resolution photo`} loading="lazy" className="h-28 w-full rounded-lg object-cover" />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
@@ -257,11 +367,11 @@ function ComplaintDetail() {
             <h2 className="font-display text-lg font-semibold">Photos</h2>
             {mediaQuery.isLoading ? (
               <Skeleton className="mt-3 h-40" />
-            ) : (mediaQuery.data?.length ?? 0) === 0 ? (
+            ) : evidence.length === 0 ? (
               <p className="mt-2 text-sm text-muted-foreground">No photos were attached.</p>
             ) : (
               <ul className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                {mediaQuery.data!.map((m) => (
+                {evidence.map((m) => (
                   <li key={m.id} className="overflow-hidden rounded-xl border">
                     {m.url ? (
                       <a href={m.url} target="_blank" rel="noreferrer">
@@ -367,7 +477,7 @@ function ComplaintDetail() {
                 <Select value={nextStatus} onValueChange={(v) => setNextStatus(v as ComplaintStatus)}>
                   <SelectTrigger><SelectValue placeholder="Change status" /></SelectTrigger>
                   <SelectContent>
-                    {STATUS_FLOW.concat(["REJECTED", "DUPLICATE"]).map((s) => (
+                    {(["UNDER_REVIEW", "ASSIGNED", "IN_PROGRESS", "PENDING", "CLOSED", "REJECTED", "DUPLICATE"] as ComplaintStatus[]).map((s) => (
                       <SelectItem key={s} value={s}>{STATUS_META[s].label}</SelectItem>
                     ))}
                   </SelectContent>
@@ -424,8 +534,23 @@ function ComplaintDetail() {
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="Anything you'd like the department to know?"
               />
+              <label className="mt-3 flex items-center gap-2 text-sm">
+                <input type="checkbox" checked={stillExists} onChange={(e) => setStillExists(e.target.checked)} className="size-4" />
+                Problem still exists — reopen this complaint
+              </label>
               <Button className="mt-3 w-full" disabled={rating === 0 || busy} onClick={() => void submitFeedback()}>
                 Submit feedback
+              </Button>
+            </section>
+          )}
+
+          {canReopen && !canRate && (
+            <section className="rounded-2xl border bg-card p-5 shadow-soft">
+              <h2 className="font-display text-lg font-semibold">Problem still exists?</h2>
+              <p className="mt-1 text-sm text-muted-foreground">Reopen it and the department will be notified again.</p>
+              <Textarea rows={2} className="mt-3" value={comment} onChange={(e) => setComment(e.target.value)} placeholder="What is still wrong?" />
+              <Button variant="outline" className="mt-3 w-full" disabled={busy} onClick={() => void reopen()}>
+                <RotateCcw className="size-4" /> Reopen complaint
               </Button>
             </section>
           )}
@@ -434,6 +559,9 @@ function ComplaintDetail() {
             <section className="rounded-2xl border bg-card p-5 shadow-soft">
               <h2 className="font-display text-lg font-semibold">Citizen feedback</h2>
               <p className="mt-2 text-sm">Rating: {feedbackQuery.data.rating}/5</p>
+              {(feedbackQuery.data as { still_exists?: boolean }).still_exists && (
+                <p className="mt-1 text-sm text-critical">Citizen reported the problem still exists.</p>
+              )}
               {feedbackQuery.data.comment && (
                 <p className="mt-1 text-sm text-muted-foreground">{feedbackQuery.data.comment}</p>
               )}
@@ -441,6 +569,15 @@ function ComplaintDetail() {
           )}
         </div>
       </div>
+      <ResolveDialog
+        complaint={resolveOpen ? complaint : null}
+        onClose={() => setResolveOpen(false)}
+        onResolved={() => {
+          void complaintQuery.refetch();
+          void timelineQuery.refetch();
+          void mediaQuery.refetch();
+        }}
+      />
     </div>
   );
 }

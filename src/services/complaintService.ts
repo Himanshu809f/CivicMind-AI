@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { categoryMeta, type ComplaintPriority, type ComplaintStatus } from "@/lib/civic";
+import { categoryMeta, type Complaint, type ComplaintPriority, type ComplaintStatus } from "@/lib/civic";
 import type { ClassifyResult } from "@/lib/ai.functions";
 
 export async function fetchDepartments() {
